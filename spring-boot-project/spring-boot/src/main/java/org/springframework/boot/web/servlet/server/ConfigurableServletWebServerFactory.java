@@ -56,7 +56,7 @@ public interface ConfigurableServletWebServerFactory
 
 	/**
 	 * Sets the display name of the application deployed in the web server.
-	 * 设置显示名称
+		 * 设置显示名称
 	 * @param displayName the displayName to set
 	 * @since 1.3.0
 	 */

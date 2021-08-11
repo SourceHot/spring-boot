@@ -36,6 +36,8 @@ public interface ConfigurableUndertowWebServerFactory extends ConfigurableWebSer
 	/**
 	 * Set {@link UndertowBuilderCustomizer}s that should be applied to the Undertow
 	 * {@link Builder}. Calling this method will replace any existing customizers.
+	 * 
+	 * 设置UndertowBuilderCustomizer集合
 	 * @param customizers the customizers to set
 	 * @since 2.3.0
 	 */
@@ -44,72 +46,84 @@ public interface ConfigurableUndertowWebServerFactory extends ConfigurableWebSer
 	/**
 	 * Add {@link UndertowBuilderCustomizer}s that should be used to customize the
 	 * Undertow {@link Builder}.
+	 * 添加UndertowBuilderCustomizer集合
 	 * @param customizers the customizers to add
 	 */
 	void addBuilderCustomizers(UndertowBuilderCustomizer... customizers);
 
 	/**
 	 * Set the buffer size.
+	 * 设置缓存大小
 	 * @param bufferSize buffer size
 	 */
 	void setBufferSize(Integer bufferSize);
 
 	/**
 	 * Set the number of IO Threads.
+	 * 设置io线程数
 	 * @param ioThreads number of IO Threads
 	 */
 	void setIoThreads(Integer ioThreads);
 
 	/**
 	 * Set the number of Worker Threads.
+	 * 设置工作线程数
 	 * @param workerThreads number of Worker Threads
 	 */
 	void setWorkerThreads(Integer workerThreads);
 
 	/**
 	 * Set whether direct buffers should be used.
+	 * 设置是否应使用直接缓冲区
 	 * @param useDirectBuffers whether direct buffers should be used
 	 */
 	void setUseDirectBuffers(Boolean useDirectBuffers);
 
 	/**
 	 * Set the access log directory.
+	 * 设置访问日志目录
 	 * @param accessLogDirectory access log directory
 	 */
 	void setAccessLogDirectory(File accessLogDirectory);
 
 	/**
 	 * Set the access log pattern.
+	 * 设置访问日志模式
 	 * @param accessLogPattern access log pattern
 	 */
 	void setAccessLogPattern(String accessLogPattern);
 
 	/**
 	 * Set the access log prefix.
+	 * 设置访问日志前缀
 	 * @param accessLogPrefix log prefix
 	 */
 	void setAccessLogPrefix(String accessLogPrefix);
 
 	/**
 	 * Set the access log suffix.
+	 * 设置访问日志后缀
 	 * @param accessLogSuffix access log suffix
 	 */
 	void setAccessLogSuffix(String accessLogSuffix);
 
 	/**
 	 * Set whether access logs are enabled.
+	 * 设置是否启用访问日志
 	 * @param accessLogEnabled whether access logs are enabled
 	 */
 	void setAccessLogEnabled(boolean accessLogEnabled);
 
 	/**
 	 * Set whether access logs rotation is enabled.
+	 * 设置是否启用访问日志轮换。
 	 * @param accessLogRotate whether access logs rotation is enabled
 	 */
 	void setAccessLogRotate(boolean accessLogRotate);
 
 	/**
 	 * Set if x-forward-* headers should be processed.
+	 * 设置是否处理 x-forward-*请求头
 	 * @param useForwardHeaders if x-forward headers should be used
 	 */
 	void setUseForwardHeaders(boolean useForwardHeaders);

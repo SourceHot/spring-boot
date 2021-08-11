@@ -33,6 +33,7 @@ public interface ConfigurableJettyWebServerFactory extends ConfigurableWebServer
 
 	/**
 	 * Set the number of acceptor threads to use.
+	 * 设置接受者线程数
 	 * @param acceptors the number of acceptor threads to use
 	 */
 	void setAcceptors(int acceptors);
@@ -40,18 +41,21 @@ public interface ConfigurableJettyWebServerFactory extends ConfigurableWebServer
 	/**
 	 * Set the {@link ThreadPool} that should be used by the {@link Server}. If set to
 	 * {@code null} (default), the {@link Server} creates a {@link ThreadPool} implicitly.
+	 * 设置线程池
 	 * @param threadPool the ThreadPool to be used
 	 */
 	void setThreadPool(ThreadPool threadPool);
 
 	/**
 	 * Set the number of selector threads to use.
+	 * 设置选择器线程数量
 	 * @param selectors the number of selector threads to use
 	 */
 	void setSelectors(int selectors);
 
 	/**
 	 * Set if x-forward-* headers should be processed.
+	 * 设置是否需要处理x-forward-*请求头
 	 * @param useForwardHeaders if x-forward headers should be used
 	 */
 	void setUseForwardHeaders(boolean useForwardHeaders);
@@ -59,6 +63,7 @@ public interface ConfigurableJettyWebServerFactory extends ConfigurableWebServer
 	/**
 	 * Add {@link JettyServerCustomizer}s that will be applied to the {@link Server}
 	 * before it is started.
+	 * 添加JettyServerCustomizer
 	 * @param customizers the customizers to add
 	 */
 	void addServerCustomizers(JettyServerCustomizer... customizers);
