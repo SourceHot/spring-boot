@@ -81,21 +81,22 @@ import java.util.stream.Collectors;
  */
 public class TomcatServletWebServerFactory extends AbstractServletWebServerFactory
 		implements ConfigurableTomcatWebServerFactory, ResourceLoaderAware {
+
 	/**
 	 * The class name of default protocol used.
-	 * 默认的协议类名
+	 * 默认的协议类名。
 	 */
 	public static final String DEFAULT_PROTOCOL = "org.apache.coyote.http11.Http11NioProtocol";
 	/**
-	 * 默认字符集
+	 * 默认字符集。
 	 */
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	/**
-	 * 空类集合
+	 * 空类集合。
 	 */
 	private static final Set<Class<?>> NO_CLASSES = Collections.emptySet();
 	/**
-	 * tomcat连接器集合
+	 * Tomcat连接器集合。
 	 */
 	private final List<Connector> additionalTomcatConnectors = new ArrayList<>();
 	/**
@@ -103,7 +104,7 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 	 */
 	private final Set<String> tldScanPatterns = new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN);
 	/**
-	 * 根路径
+	 * 根路径。
 	 */
 	private File baseDirectory;
 	/**
@@ -111,49 +112,49 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 	 */
 	private List<Valve> engineValves = new ArrayList<>();
 	/**
-	 * 上下文值列表
+	 * 上下文值列表。
 	 */
 	private List<Valve> contextValves = new ArrayList<>();
 	/**
-	 * 上下文生命周期监听器集合
+	 * 上下文生命周期监听器集合。
 	 */
 	private List<LifecycleListener> contextLifecycleListeners = getDefaultLifecycleListeners();
 	/**
-	 * TomcatContextCustomizer集合
+	 * TomcatContextCustomizer集合，TomcatContextCustomizer用于对Tomcat上下文进行自定义处理。
 	 */
 	private Set<TomcatContextCustomizer> tomcatContextCustomizers = new LinkedHashSet<>();
 	/**
-	 * TomcatConnectorCustomizer集合
+	 * TomcatConnectorCustomizer集合，TomcatConnectorCustomizer用于对Tomcat连接进行自定义处理。
 	 */
 	private Set<TomcatConnectorCustomizer> tomcatConnectorCustomizers = new LinkedHashSet<>();
 	/**
-	 * TomcatProtocolHandlerCustomizer集合
+	 * TomcatProtocolHandlerCustomizer集合，ProtocolHandler接口的Tomcat实现接口。
 	 */
 	private Set<TomcatProtocolHandlerCustomizer<?>> tomcatProtocolHandlerCustomizers = new LinkedHashSet<>();
 	/**
-	 * 资源加载器
+	 * 资源加载器。
 	 */
 	private ResourceLoader resourceLoader;
 	/**
-	 * 协议名称
+	 * 协议名称。
 	 */
 	private String protocol = DEFAULT_PROTOCOL;
 	/**
-	 * TLD匹配模式
+	 * TLD匹配模式。
 	 */
 	private Set<String> tldSkipPatterns = new LinkedHashSet<>(TldPatterns.DEFAULT_SKIP);
 	/**
-	 * url编码字符集
+	 * url编码字符集。
 	 */
 	private Charset uriEncoding = DEFAULT_CHARSET;
 
 	/**
-	 * 处理器延迟时间
+	 * 处理器延迟时间。
 	 */
 	private int backgroundProcessorDelay;
 
 	/**
-	 * 是否禁用Mbean注册,RegistryMBean
+	 * 是否禁用Mbean注册（RegistryMBean）。
 	 */
 	private boolean disableMBeanRegistry = true;
 
@@ -704,19 +705,6 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 	}
 
 	/**
-	 * Set {@link TomcatConnectorCustomizer}s that should be applied to the Tomcat
-	 * {@link Connector}. Calling this method will replace any existing customizers.
-	 *
-	 * @param tomcatProtocolHandlerCustomizer the customizers to set
-	 * @since 2.2.0
-	 */
-	public void setTomcatProtocolHandlerCustomizers(
-			Collection<? extends TomcatProtocolHandlerCustomizer<?>> tomcatProtocolHandlerCustomizer) {
-		Assert.notNull(tomcatProtocolHandlerCustomizer, "TomcatProtocolHandlerCustomizers must not be null");
-		this.tomcatProtocolHandlerCustomizers = new LinkedHashSet<>(tomcatProtocolHandlerCustomizer);
-	}
-
-	/**
 	 * Add {@link Connector}s in addition to the default connector, e.g. for SSL or AJP
 	 *
 	 * @param connectors the connectors to add
@@ -874,59 +862,6 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 					throw new LifecycleException(ex);
 				}
 			}
-		}
-
-	}
-
-	private final class StaticResourceConfigurer implements LifecycleListener {
-
-		private final Context context;
-
-		private StaticResourceConfigurer(Context context) {
-			this.context = context;
-		}
-
-		@Override
-		public void lifecycleEvent(LifecycleEvent event) {
-			if (event.getType().equals(Lifecycle.CONFIGURE_START_EVENT)) {
-				addResourceJars(getUrlsOfJarsWithMetaInfResources());
-			}
-		}
-
-		private void addResourceJars(List<URL> resourceJarUrls) {
-			for (URL url : resourceJarUrls) {
-				String path = url.getPath();
-				if (path.endsWith(".jar") || path.endsWith(".jar!/")) {
-					String jar = url.toString();
-					if (!jar.startsWith("jar:")) {
-						// A jar file in the file system. Convert to Jar URL.
-						jar = "jar:" + jar + "!/";
-					}
-					addResourceSet(jar);
-				} else {
-					addResourceSet(url.toString());
-				}
-			}
-		}
-
-		private void addResourceSet(String resource) {
-			try {
-				if (isInsideNestedJar(resource)) {
-					// It's a nested jar but we now don't want the suffix because Tomcat
-					// is going to try and locate it as a root URL (not the resource
-					// inside it)
-					resource = resource.substring(0, resource.length() - 2);
-				}
-				URL url = new URL(resource);
-				String path = "/META-INF/resources";
-				this.context.getResources().createWebResourceSet(ResourceSetType.RESOURCE_JAR, "/", url, path);
-			} catch (Exception ex) {
-				// Ignore (probably not a directory)
-			}
-		}
-
-		private boolean isInsideNestedJar(String dir) {
-			return dir.indexOf("!/") < dir.lastIndexOf("!/");
 		}
 
 	}
