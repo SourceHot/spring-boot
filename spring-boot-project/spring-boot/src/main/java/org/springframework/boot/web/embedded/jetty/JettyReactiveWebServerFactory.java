@@ -103,8 +103,11 @@ public class JettyReactiveWebServerFactory extends AbstractReactiveWebServerFact
 
 	@Override
 	public WebServer getWebServer(HttpHandler httpHandler) {
+		// 创建Jetty的Http请求处理适配器
 		JettyHttpHandlerAdapter servlet = new JettyHttpHandlerAdapter(httpHandler);
+		// 创建jetty-server对象
 		Server server = createJettyServer(servlet);
+		// 创建jetty-webserver对象
 		return new JettyWebServer(server, getPort() >= 0);
 	}
 
@@ -165,31 +168,44 @@ public class JettyReactiveWebServerFactory extends AbstractReactiveWebServerFact
 	}
 
 	protected Server createJettyServer(JettyHttpHandlerAdapter servlet) {
+		// 确认端口
 		int port = Math.max(getPort(), 0);
+		// 确认网络地址
 		InetSocketAddress address = new InetSocketAddress(getAddress(), port);
+		// 创建server对象
 		Server server = new Server(getThreadPool());
+		// 设置连接器
 		server.addConnector(createConnector(address, server));
 		server.setStopTimeout(0);
+		// 创建servlet持有器
 		ServletHolder servletHolder = new ServletHolder(servlet);
+		// 设置支持异步
 		servletHolder.setAsyncSupported(true);
+		// 创建servlet上下文持有器
 		ServletContextHandler contextHandler = new ServletContextHandler(server, "/", false, false);
 		contextHandler.addServlet(servletHolder, "/");
+		// 为server对象设置处理器
 		server.setHandler(addHandlerWrappers(contextHandler));
 		JettyReactiveWebServerFactory.logger.info("Server initialized with port: " + port);
+		// 设置ssl
 		if (getSsl() != null && getSsl().isEnabled()) {
 			customizeSsl(server, address);
 		}
+		// 自定义配置处理
 		for (JettyServerCustomizer customizer : getServerCustomizers()) {
 			customizer.customize(server);
 		}
+		// 允许使用forward请求头的情况下进行处理
 		if (this.useForwardHeaders) {
 			new ForwardHeadersCustomizer().customize(server);
 		}
+		// 关闭类型是等待处理完成后停止进行处理
 		if (getShutdown() == Shutdown.GRACEFUL) {
 			StatisticsHandler statisticsHandler = new StatisticsHandler();
 			statisticsHandler.setHandler(server.getHandler());
 			server.setHandler(statisticsHandler);
 		}
+		// 返回server对象
 		return server;
 	}
 

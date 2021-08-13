@@ -27,11 +27,14 @@ public enum Shutdown {
 	/**
 	 * The {@link WebServer} should support graceful shutdown, allowing active requests
 	 * time to complete.
+	 * 等待处理完成后停止。
+	 *
 	 */
 	GRACEFUL,
 
 	/**
 	 * The {@link WebServer} should shut down immediately.
+	 * 立即停止
 	 */
 	IMMEDIATE;
 

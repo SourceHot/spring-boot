@@ -95,24 +95,39 @@ import org.springframework.util.StringUtils;
 public class JettyServletWebServerFactory extends AbstractServletWebServerFactory
 		implements ConfigurableJettyWebServerFactory, ResourceLoaderAware {
 
+	/**
+	 * jetty配置集合
+	 */
 	private List<Configuration> configurations = new ArrayList<>();
 
+	/**
+	 * 是否使用 forward 请求头
+	 */
 	private boolean useForwardHeaders;
 
 	/**
 	 * The number of acceptor threads to use.
+	 * 要使用的接受者线程数
 	 */
 	private int acceptors = -1;
 
 	/**
 	 * The number of selector threads to use.
+	 * 要使用的选择器线程数
 	 */
 	private int selectors = -1;
 
+	/**
+	 * JettyServerCustomizer集合
+	 */
 	private Set<JettyServerCustomizer> jettyServerCustomizers = new LinkedHashSet<>();
-
+	/**
+	 * 资源加载器
+	 */
 	private ResourceLoader resourceLoader;
-
+	/**
+	 * jetty线程池
+	 */
 	private ThreadPool threadPool;
 
 	/**
@@ -142,27 +157,41 @@ public class JettyServletWebServerFactory extends AbstractServletWebServerFactor
 
 	@Override
 	public WebServer getWebServer(ServletContextInitializer... initializers) {
+		// 创建jetty嵌入式web上下文
 		JettyEmbeddedWebAppContext context = new JettyEmbeddedWebAppContext();
+		// 确认端口
 		int port = Math.max(getPort(), 0);
+		// 确认网络地址
 		InetSocketAddress address = new InetSocketAddress(getAddress(), port);
+		// 创建jetty-server对象
 		Server server = createServer(address);
+		// 配置jetty嵌入式web上下文
 		configureWebAppContext(context, initializers);
+		// 为jetty-server设置处理器
 		server.setHandler(addHandlerWrappers(context));
 		this.logger.info("Server initialized with port: " + port);
+		// 配置ssl
 		if (getSsl() != null && getSsl().isEnabled()) {
 			customizeSsl(server, address);
 		}
+		// 配置JettyServerCustomizer
 		for (JettyServerCustomizer customizer : getServerCustomizers()) {
 			customizer.customize(server);
 		}
+		// 允许使用forward请求头的情况下进行处理
 		if (this.useForwardHeaders) {
 			new ForwardHeadersCustomizer().customize(server);
 		}
+		// 关闭类型是等待处理完成后停止进行处理
 		if (getShutdown() == Shutdown.GRACEFUL) {
+			// 创建统计处理器
 			StatisticsHandler statisticsHandler = new StatisticsHandler();
+			// 设置处理器
 			statisticsHandler.setHandler(server.getHandler());
+			// jetty-server对象设置处理器
 			server.setHandler(statisticsHandler);
 		}
+		// 获取jetty
 		return getJettyWebServer(server);
 	}
 
@@ -212,28 +241,42 @@ public class JettyServletWebServerFactory extends AbstractServletWebServerFactor
 	 */
 	protected final void configureWebAppContext(WebAppContext context, ServletContextInitializer... initializers) {
 		Assert.notNull(context, "Context must not be null");
+		// 清空别名检查列表
 		context.getAliasChecks().clear();
+		// 设置临时路径
 		context.setTempDirectory(getTempDirectory());
+		// 设置类加载器
 		if (this.resourceLoader != null) {
 			context.setClassLoader(this.resourceLoader.getClassLoader());
 		}
+		// 设置web上下文路径
 		String contextPath = getContextPath();
 		context.setContextPath(StringUtils.hasLength(contextPath) ? contextPath : "/");
+		// 设置显示名称
 		context.setDisplayName(getDisplayName());
+		// 配置根路径
 		configureDocumentRoot(context);
+		// 判断是否需要注册默认的servlet，如果需要则向上下文中添加默认的servlet
 		if (isRegisterDefaultServlet()) {
 			addDefaultServlet(context);
 		}
+		// 判断是否需要注册jspservlet，如果需要则进行jspservlet的添加操作
 		if (shouldRegisterJspServlet()) {
 			addJspServlet(context);
 			context.addBean(new JasperInitializer(context), true);
 		}
+		// 添加地区（语言）和字符集映射表
 		addLocaleMappings(context);
+		// 合并ServletContextInitializer
 		ServletContextInitializer[] initializersToUse = mergeInitializers(initializers);
+		// 获取web应用配置
 		Configuration[] configurations = getWebAppContextConfigurations(context, initializersToUse);
 		context.setConfigurations(configurations);
+		// 设置在启动异常时抛出不可用
 		context.setThrowUnavailableOnStartupException(true);
+		// 配置session
 		configureSession(context);
+		// 后置处理
 		postProcessWebAppContext(context);
 	}
 
@@ -264,7 +307,7 @@ public class JettyServletWebServerFactory extends AbstractServletWebServerFactor
 		return (temp != null) ? new File(temp) : null;
 	}
 
-	private void configureDocumentRoot(WebAppContext handler) {
+	private void configureDocumentRoot(WebAppContext handler)  {
 		File root = getValidDocumentRoot();
 		File docBase = (root != null) ? root : createTempDir("jetty-docbase");
 		try {
