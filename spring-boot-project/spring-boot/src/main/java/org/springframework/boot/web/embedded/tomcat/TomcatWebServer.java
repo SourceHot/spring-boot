@@ -58,18 +58,34 @@ public class TomcatWebServer implements WebServer {
 
 	private static final Log logger = LogFactory.getLog(TomcatWebServer.class);
 
+	/**
+	 * 容器计数器
+	 */
 	private static final AtomicInteger containerCounter = new AtomicInteger(-1);
 
+	/**
+	 * 锁
+	 */
 	private final Object monitor = new Object();
-
+	/**
+	 * 服务和连接器列表映射
+	 */
 	private final Map<Service, Connector[]> serviceConnectors = new HashMap<>();
-
+	/**
+	 * tomcat对象
+	 */
 	private final Tomcat tomcat;
-
+	/**
+	 * 是否自动启动
+	 */
 	private final boolean autoStart;
-
+	/**
+	 * tomcat的优雅关闭
+	 */
 	private final GracefulShutdown gracefulShutdown;
-
+	/**
+	 * 是否开启
+	 */
 	private volatile boolean started;
 
 	/**
@@ -104,13 +120,21 @@ public class TomcatWebServer implements WebServer {
 		initialize();
 	}
 
+	/**
+	 * 初始化方法
+	 * @throws WebServerException
+	 */
 	private void initialize() throws WebServerException {
 		logger.info("Tomcat initialized with port(s): " + getPortsDescription(false));
 		synchronized (this.monitor) {
 			try {
+				// 添加容器计数器并且给引擎设置名称
 				addInstanceIdToEngineName();
 
+				// 寻找上下文
 				Context context = findContext();
+				// 上下文中添加生命周期的处理策略，此时的生命周期是启动,在启动时移除所有的连接对象,
+				// 注意移除的是tomcat中的连接对象，移除内容会被放入到成员变量serviceConnectors中
 				context.addLifecycleListener((event) -> {
 					if (context.equals(event.getSource()) && Lifecycle.START_EVENT.equals(event.getType())) {
 						// Remove service connectors so that protocol binding doesn't
@@ -120,12 +144,15 @@ public class TomcatWebServer implements WebServer {
 				});
 
 				// Start the server to trigger initialization listeners
+				// tomcat 启动
 				this.tomcat.start();
 
 				// We can re-throw failure exception directly in the main thread
+				// 尝试性抛出异常,不一定会抛出异常
 				rethrowDeferredStartupExceptions();
 
 				try {
+					// 绑定上下文，token和类加载器
 					ContextBindings.bindClassLoader(context, context.getNamingToken(), getClass().getClassLoader());
 				}
 				catch (NamingException ex) {
@@ -134,16 +161,23 @@ public class TomcatWebServer implements WebServer {
 
 				// Unlike Jetty, all Tomcat threads are daemon threads. We create a
 				// blocking non-daemon to stop immediate shutdown
+				// 创建非守护线程来防止立即关闭
 				startDaemonAwaitThread();
 			}
 			catch (Exception ex) {
+				// 停止tomcat
 				stopSilently();
+				// 摧毁tomcat
 				destroySilently();
+				// 抛出异常
 				throw new WebServerException("Unable to start embedded Tomcat", ex);
 			}
 		}
 	}
 
+	/**
+	 * 寻找上下文
+	 */
 	private Context findContext() {
 		for (Container child : this.tomcat.getHost().findChildren()) {
 			if (child instanceof Context) {
@@ -153,6 +187,9 @@ public class TomcatWebServer implements WebServer {
 		throw new IllegalStateException("The host does not contain a Context");
 	}
 
+	/**
+	 * 设置引擎id
+	 */
 	private void addInstanceIdToEngineName() {
 		int instanceId = containerCounter.incrementAndGet();
 		if (instanceId > 0) {
@@ -161,6 +198,9 @@ public class TomcatWebServer implements WebServer {
 		}
 	}
 
+	/**
+	 * 移除服务连接
+	 */
 	private void removeServiceConnectors() {
 		for (Service service : this.tomcat.getServer().findServices()) {
 			Connector[] connectors = service.findConnectors().clone();
@@ -171,24 +211,34 @@ public class TomcatWebServer implements WebServer {
 		}
 	}
 
+	/**
+	 * 抛出启动异常
+	 */
 	private void rethrowDeferredStartupExceptions() throws Exception {
 		Container[] children = this.tomcat.getHost().findChildren();
 		for (Container container : children) {
+			// 容器类型是TomcatEmbeddedContext
 			if (container instanceof TomcatEmbeddedContext) {
 				TomcatStarter tomcatStarter = ((TomcatEmbeddedContext) container).getStarter();
+				// 获取TomcatStarter不为空
 				if (tomcatStarter != null) {
 					Exception exception = tomcatStarter.getStartUpException();
+					// TomcatStarter中存在启动异常
 					if (exception != null) {
 						throw exception;
 					}
 				}
 			}
+			// 容器状态不是STARTED抛出异常
 			if (!LifecycleState.STARTED.equals(container.getState())) {
 				throw new IllegalStateException(container + " failed to start");
 			}
 		}
 	}
 
+	/**
+	 * 启动非守护进程
+	 */
 	private void startDaemonAwaitThread() {
 		Thread awaitThread = new Thread("container-" + (containerCounter.get())) {
 
@@ -205,31 +255,39 @@ public class TomcatWebServer implements WebServer {
 
 	@Override
 	public void start() throws WebServerException {
+		// 锁
 		synchronized (this.monitor) {
+			// 如果已经启动不做操作
 			if (this.started) {
 				return;
 			}
 			try {
+				// 处理tomcat对象中的Service和成员变量serviceConnectors进行对比移除或暂停连接器
 				addPreviouslyRemovedConnectors();
+				// 获取连接器
 				Connector connector = this.tomcat.getConnector();
+				// 连接器存在并且是自动启动的
 				if (connector != null && this.autoStart) {
+					// 执行延迟加载操作
 					performDeferredLoadOnStartup();
 				}
+				// 检查连接器是否启动
 				checkThatConnectorsHaveStarted();
 				this.started = true;
 				logger.info("Tomcat started on port(s): " + getPortsDescription(true) + " with context path '"
 						+ getContextPath() + "'");
-			}
-			catch (ConnectorStartFailedException ex) {
+			} catch (ConnectorStartFailedException ex) {
+				// 关闭tomcat
 				stopSilently();
 				throw ex;
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
+				// 端口绑定异常处理
 				PortInUseException.throwIfPortBindingException(ex, () -> this.tomcat.getConnector().getPort());
 				throw new WebServerException("Unable to start embedded Tomcat server", ex);
-			}
-			finally {
+			} finally {
+				// 寻找上下文
 				Context context = findContext();
+				// 解绑上下文
 				ContextBindings.unbindClassLoader(context, context.getNamingToken(), getClass().getClassLoader());
 			}
 		}
@@ -273,6 +331,9 @@ public class TomcatWebServer implements WebServer {
 		this.tomcat.stop();
 	}
 
+	/**
+	 *
+	 */
 	private void addPreviouslyRemovedConnectors() {
 		Service[] services = this.tomcat.getServer().findServices();
 		for (Service service : services) {
@@ -281,6 +342,7 @@ public class TomcatWebServer implements WebServer {
 				for (Connector connector : connectors) {
 					service.addConnector(connector);
 					if (!this.autoStart) {
+						// 暂停连接器
 						stopProtocolHandler(connector);
 					}
 				}
@@ -320,26 +382,28 @@ public class TomcatWebServer implements WebServer {
 
 	@Override
 	public void stop() throws WebServerException {
+		// 锁
 		synchronized (this.monitor) {
 			boolean wasStarted = this.started;
 			try {
 				this.started = false;
 				try {
 					if (this.gracefulShutdown != null) {
+						// 流产标记为true
 						this.gracefulShutdown.abort();
 					}
+					// 停止tomcat
 					stopTomcat();
+					// 摧毁tomcat
 					this.tomcat.destroy();
-				}
-				catch (LifecycleException ex) {
+				} catch (LifecycleException ex) {
 					// swallow and continue
 				}
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				throw new WebServerException("Unable to stop embedded Tomcat", ex);
-			}
-			finally {
+			} finally {
 				if (wasStarted) {
+					// 容器计数器减1
 					containerCounter.decrementAndGet();
 				}
 			}

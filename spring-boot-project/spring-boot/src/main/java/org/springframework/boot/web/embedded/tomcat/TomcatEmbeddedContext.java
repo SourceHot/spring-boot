@@ -61,6 +61,7 @@ class TomcatEmbeddedContext extends StandardContext {
 	}
 
 	void deferredLoadOnStartup() throws LifecycleException {
+
 		doWithThreadContextClassLoader(getLoader().getClassLoader(),
 				() -> getLoadOnStartupWrappers(findChildren()).forEach(this::load));
 	}

@@ -43,6 +43,9 @@ final class GracefulShutdown {
 
 	private final Tomcat tomcat;
 
+	/**
+	 * 流产标记
+	 */
 	private volatile boolean aborted = false;
 
 	GracefulShutdown(Tomcat tomcat) {
@@ -55,14 +58,18 @@ final class GracefulShutdown {
 	}
 
 	private void doShutdown(GracefulShutdownCallback callback) {
+		// 获取连接集合
 		List<Connector> connectors = getConnectors();
+		// 关闭所有连接
 		connectors.forEach(this::close);
 		try {
+			// 处理引擎中的容器
 			for (Container host : this.tomcat.getEngine().findChildren()) {
 				for (Container context : host.findChildren()) {
 					while (isActive(context)) {
 						if (this.aborted) {
 							logger.info("Graceful shutdown aborted with one or more requests still active");
+							// 设置优雅关闭状态
 							callback.shutdownComplete(GracefulShutdownResult.REQUESTS_ACTIVE);
 							return;
 						}
@@ -76,6 +83,7 @@ final class GracefulShutdown {
 			Thread.currentThread().interrupt();
 		}
 		logger.info("Graceful shutdown complete");
+		// 设置优雅关闭状态
 		callback.shutdownComplete(GracefulShutdownResult.IDLE);
 	}
 

@@ -28,16 +28,19 @@ public enum GracefulShutdownResult {
 
 	/**
 	 * Requests remained active at the end of the grace period.
+	 * 请求在宽限期结束时保持活动状态。假设宽限时间为10秒，在10秒后全部关闭
 	 */
 	REQUESTS_ACTIVE,
 
 	/**
 	 * The server was idle with no active requests at the end of the grace period.
+	 * 在宽限期结束时，服务器处于空闲状态，没有活动请求。
 	 */
 	IDLE,
 
 	/**
 	 * The server was shutdown immediately, ignoring any active requests.
+	 * 服务器立即关闭，忽略任何活动请求。
 	 */
 	IMMEDIATE;
 

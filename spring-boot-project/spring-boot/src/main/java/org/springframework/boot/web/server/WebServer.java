@@ -57,6 +57,8 @@ public interface WebServer {
 	 * implementation invokes the callback immediately with
 	 * {@link GracefulShutdownResult#IMMEDIATE}, i.e. no attempt is made at a graceful
 	 * shutdown.
+	 *
+	 * 优雅关闭的处理
 	 * @param callback the callback to invoke when the graceful shutdown completes
 	 * @since 2.3.0
 	 */
