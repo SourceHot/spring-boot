@@ -82,19 +82,33 @@ import org.springframework.util.Assert;
  */
 public class UndertowServletWebServerFactory extends AbstractServletWebServerFactory
 		implements ConfigurableUndertowWebServerFactory, ResourceLoaderAware {
-
+	/**
+	 * 正则
+	 */
 	private static final Pattern ENCODED_SLASH = Pattern.compile("%2F", Pattern.LITERAL);
-
+	/**
+	 *
+	 */
 	private static final Set<Class<?>> NO_CLASSES = Collections.emptySet();
-
+	/**
+	 * 工厂委托类
+	 */
 	private UndertowWebServerFactoryDelegate delegate = new UndertowWebServerFactoryDelegate();
-
+	/**
+	 * UndertowDeploymentInfoCustomizer接口集合
+	 */
 	private Set<UndertowDeploymentInfoCustomizer> deploymentInfoCustomizers = new LinkedHashSet<>();
-
+	/**
+	 * 资源加载器
+	 */
 	private ResourceLoader resourceLoader;
-
+	/**
+	 * 是否进行filter初始化
+	 */
 	private boolean eagerFilterInit = true;
-
+	/**
+	 * 是否支持forward
+	 */
 	private boolean preservePathOnForward = false;
 
 	/**
@@ -312,43 +326,65 @@ public class UndertowServletWebServerFactory extends AbstractServletWebServerFac
 
 	@Override
 	public WebServer getWebServer(ServletContextInitializer... initializers) {
+		// 通过委托类创建构造器
 		Builder builder = this.delegate.createBuilder(this);
+		// 创建DeploymentManager
 		DeploymentManager manager = createManager(initializers);
+		// 获取UndertowServletWebServer
 		return getUndertowWebServer(builder, manager, getPort());
 	}
 
 	private DeploymentManager createManager(ServletContextInitializer... initializers) {
+		// 获取部署对象信息
 		DeploymentInfo deployment = Servlets.deployment();
+		// 将servlet上下文自定义实例化策略进行注册
 		registerServletContainerInitializerToDriveServletContextInitializers(deployment, initializers);
+		// 设置类加载器
 		deployment.setClassLoader(getServletClassLoader());
+		// 设置上下文路径
 		deployment.setContextPath(getContextPath());
+		// 设置显示名称
 		deployment.setDisplayName(getDisplayName());
+		// 设置部署器名称
 		deployment.setDeploymentName("spring-boot");
+		// 判断是否需要注册默认的servlet，如果需要则进行注册
 		if (isRegisterDefaultServlet()) {
 			deployment.addServlet(Servlets.servlet("default", DefaultServlet.class));
 		}
+		// 配置异常页
 		configureErrorPages(deployment);
+		// 设置堆栈追踪标记
 		deployment.setServletStackTraces(ServletStackTraces.NONE);
+		// 设置资源 管理器
 		deployment.setResourceManager(getDocumentRootResourceManager());
+		// 创建临时目录并设置临时目录
 		deployment.setTempDir(createTempDir("undertow"));
 		deployment.setEagerFilterInit(this.eagerFilterInit);
 		deployment.setPreservePathOnForward(this.preservePathOnForward);
+		// 配置mime数据
 		configureMimeMappings(deployment);
+		// 配置web监听器
 		configureWebListeners(deployment);
 		for (UndertowDeploymentInfoCustomizer customizer : this.deploymentInfoCustomizers) {
 			customizer.customize(deployment);
 		}
+		// session 持久的情况下进行session文件创建，并将文件数据放入到部署器中
 		if (getSession().isPersistent()) {
 			File dir = getValidSessionStoreDir();
 			deployment.setSessionPersistenceManager(new FileSessionPersistence(dir));
 		}
+		// 添加地区语言设置
 		addLocaleMappings(deployment);
+		// 创建部署管理器
 		DeploymentManager manager = Servlets.newContainer().addDeployment(deployment);
+		// 管理器进行部署操作
 		manager.deploy();
 		if (manager.getDeployment() instanceof DeploymentImpl) {
 			removeSuperfluousMimeMappings((DeploymentImpl) manager.getDeployment(), deployment);
 		}
+		// 获取session管理器
 		SessionManager sessionManager = manager.getDeployment().getSessionManager();
+		// 获取session超时时间设置给session管理器作为默认超时时间
 		Duration timeoutDuration = getSession().getTimeout();
 		int sessionTimeout = (isZeroOrLess(timeoutDuration) ? -1 : (int) timeoutDuration.getSeconds());
 		sessionManager.setDefaultSessionTimeout(sessionTimeout);

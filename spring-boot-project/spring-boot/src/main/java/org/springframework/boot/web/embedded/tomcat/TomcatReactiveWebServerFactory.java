@@ -113,24 +113,37 @@ public class TomcatReactiveWebServerFactory extends AbstractReactiveWebServerFac
 
 	@Override
 	public WebServer getWebServer(HttpHandler httpHandler) {
+		// 是否禁用Mbean注册, 如果是则进行禁用注册操作
 		if (this.disableMBeanRegistry) {
 			Registry.disableRegistry();
 		}
+		// 创建tomcat对象
 		Tomcat tomcat = new Tomcat();
+		// 创建基本文件对象
 		File baseDir = (this.baseDirectory != null) ? this.baseDirectory : createTempDir("tomcat");
+		// 为tomcat对象设置基本文件
 		tomcat.setBaseDir(baseDir.getAbsolutePath());
+		// 根据协议创建连接器
 		Connector connector = new Connector(this.protocol);
+		// 设置失败时抛出
 		connector.setThrowOnFailure(true);
+		// 为tomcat的服务对象添加连接器
 		tomcat.getService().addConnector(connector);
+		// 处理TomcatConnectorCustomizer
 		customizeConnector(connector);
 		tomcat.setConnector(connector);
 		tomcat.getHost().setAutoDeploy(false);
+		// 配置tomcat引擎
 		configureEngine(tomcat.getEngine());
+		// 设置连接器
 		for (Connector additionalConnector : this.additionalTomcatConnectors) {
 			tomcat.getService().addConnector(additionalConnector);
 		}
+		// http handler 适配器
 		TomcatHttpHandlerAdapter servlet = new TomcatHttpHandlerAdapter(httpHandler);
+		// 准备上下文
 		prepareContext(tomcat.getHost(), servlet);
+		// 创建TomcatWebServer
 		return getTomcatWebServer(tomcat);
 	}
 
@@ -142,13 +155,21 @@ public class TomcatReactiveWebServerFactory extends AbstractReactiveWebServerFac
 	}
 
 	protected void prepareContext(Host host, TomcatHttpHandlerAdapter servlet) {
+		// 创建临时目录
 		File docBase = createTempDir("tomcat-docbase");
+		// 创建tomcat嵌入式上下文
 		TomcatEmbeddedContext context = new TomcatEmbeddedContext();
+		// 设置路径
 		context.setPath("");
+		// 设置文件路径
 		context.setDocBase(docBase.getAbsolutePath());
+		// 添加生命周期监听器
 		context.addLifecycleListener(new Tomcat.FixContextListener());
+		// 设置类加载器
 		context.setParentClassLoader(ClassUtils.getDefaultClassLoader());
+		// 跳过TLD扫描
 		skipAllTldScanning(context);
+		// 创建web应用加载器
 		WebappLoader loader = new WebappLoader();
 		loader.setLoaderClass(TomcatEmbeddedWebappClassLoader.class.getName());
 		loader.setDelegate(true);

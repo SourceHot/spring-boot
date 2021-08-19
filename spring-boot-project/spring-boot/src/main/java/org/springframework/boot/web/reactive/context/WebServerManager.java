@@ -76,11 +76,17 @@ class WebServerManager {
 	 * A delayed {@link HttpHandler} that doesn't initialize things too early.
 	 */
 	static final class DelayedInitializationHttpHandler implements HttpHandler {
-
+		/**
+		 * HttpHandler提供对象
+		 */
 		private final Supplier<HttpHandler> handlerSupplier;
-
+		/**
+		 * 是否懒加载
+		 */
 		private final boolean lazyInit;
-
+		/**
+		 * 委托类
+		 */
 		private volatile HttpHandler delegate = this::handleUninitialized;
 
 		private DelayedInitializationHttpHandler(Supplier<HttpHandler> handlerSupplier, boolean lazyInit) {

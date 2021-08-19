@@ -137,9 +137,12 @@ public class UndertowReactiveWebServerFactory extends AbstractReactiveWebServerF
 
 	@Override
 	public WebServer getWebServer(org.springframework.http.server.reactive.HttpHandler httpHandler) {
+		// 通过委托类创建构造器
 		Undertow.Builder builder = this.delegate.createBuilder(this);
+		// 创建HttpHandlerFactory集合
 		List<HttpHandlerFactory> httpHandlerFactories = this.delegate.createHttpHandlerFactories(this,
 				(next) -> new UndertowHttpHandlerAdapter(httpHandler));
+		// 创建UndertowWebServer
 		return new UndertowWebServer(builder, httpHandlerFactories, getPort() >= 0);
 	}
 

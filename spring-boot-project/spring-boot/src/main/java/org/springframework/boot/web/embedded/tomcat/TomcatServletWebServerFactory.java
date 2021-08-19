@@ -198,23 +198,36 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 
 	@Override
 	public WebServer getWebServer(ServletContextInitializer... initializers) {
+		// 是否禁用Mbean注册, 如果是则进行禁用注册操作
 		if (this.disableMBeanRegistry) {
 			Registry.disableRegistry();
 		}
+		// 创建tomcat对象
 		Tomcat tomcat = new Tomcat();
+		// 创建基本文件对象
 		File baseDir = (this.baseDirectory != null) ? this.baseDirectory : createTempDir("tomcat");
+		// 为tomcat对象设置基本文件
 		tomcat.setBaseDir(baseDir.getAbsolutePath());
+		// 根据协议创建连接器
 		Connector connector = new Connector(this.protocol);
+		// 设置失败时抛出
 		connector.setThrowOnFailure(true);
+		// 为tomcat的服务对象添加连接器
 		tomcat.getService().addConnector(connector);
+		// 处理TomcatConnectorCustomizer
 		customizeConnector(connector);
+		// 为tomcat对象设置连接器
 		tomcat.setConnector(connector);
 		tomcat.getHost().setAutoDeploy(false);
+		// 配置tomcat引擎
 		configureEngine(tomcat.getEngine());
+		// 添加连接器集合
 		for (Connector additionalConnector : this.additionalTomcatConnectors) {
 			tomcat.getService().addConnector(additionalConnector);
 		}
+		// 准备上下文
 		prepareContext(tomcat.getHost(), initializers);
+		// 获取TomcatWebServer
 		return getTomcatWebServer(tomcat);
 	}
 
@@ -225,43 +238,67 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 		}
 	}
 
+	/**
+	 * 准备上下文
+	 * @param host
+	 * @param initializers
+	 */
 	protected void prepareContext(Host host, ServletContextInitializer[] initializers) {
+		// 获取文档根路径
 		File documentRoot = getValidDocumentRoot();
+		// 创建嵌入式tomcat上下文
 		TomcatEmbeddedContext context = new TomcatEmbeddedContext();
+		// 设置资源
 		if (documentRoot != null) {
 			context.setResources(new LoaderHidingResourceRoot(context));
 		}
+		// 设置名称
 		context.setName(getContextPath());
+		// 设置显示名陈
 		context.setDisplayName(getDisplayName());
+		// 设置上下文路径
 		context.setPath(getContextPath());
+		// 获取文档基准路径
 		File docBase = (documentRoot != null) ? documentRoot : createTempDir("tomcat-docbase");
+		// 设置基准路径
 		context.setDocBase(docBase.getAbsolutePath());
+		// 添加FixContextListener生命周期监听器
 		context.addLifecycleListener(new FixContextListener());
+		// 设置类加载器
 		context.setParentClassLoader((this.resourceLoader != null) ? this.resourceLoader.getClassLoader()
 				: ClassUtils.getDefaultClassLoader());
+		// 重置tomcat的地区语言映射
 		resetDefaultLocaleMapping(context);
+		// 添加地区语言映射
 		addLocaleMappings(context);
 		try {
 			context.setCreateUploadTargets(true);
 		} catch (NoSuchMethodError ex) {
 			// Tomcat is < 8.5.39. Continue.
 		}
+		// 配置TLD匹配符
 		configureTldPatterns(context);
+		// 创建web应用加载器
 		WebappLoader loader = new WebappLoader();
 		loader.setLoaderClass(TomcatEmbeddedWebappClassLoader.class.getName());
 		loader.setDelegate(true);
 		context.setLoader(loader);
+		// 判断是否需要注册默认的servlet，如果需要则向上下文中添加默认的servlet
 		if (isRegisterDefaultServlet()) {
 			addDefaultServlet(context);
 		}
+		// 判断是否需要注册jsp-servlet，如果需要则向上下文添加jsp-servlet并且添加JasperInitializer相关内容
 		if (shouldRegisterJspServlet()) {
 			addJspServlet(context);
 			addJasperInitializer(context);
 		}
 		context.addLifecycleListener(new StaticResourceConfigurer(context));
+		// 合并参数ServletContextInitializer
 		ServletContextInitializer[] initializersToUse = mergeInitializers(initializers);
 		host.addChild(context);
+		// 配置上下文
 		configureContext(context, initializersToUse);
+		// 对上下文进行后置处理
 		postProcessContext(context);
 	}
 
@@ -326,23 +363,30 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 
 	// Needs to be protected so it can be used by subclasses
 	protected void customizeConnector(Connector connector) {
+		// 获取端口
 		int port = Math.max(getPort(), 0);
+		// 设置端口
 		connector.setPort(port);
+		// 服务头处理，将服务头的数据设置给连接器
 		if (StringUtils.hasText(getServerHeader())) {
 			connector.setProperty("server", getServerHeader());
 		}
+		// 自定义协议处理
 		if (connector.getProtocolHandler() instanceof AbstractProtocol) {
 			customizeProtocol((AbstractProtocol<?>) connector.getProtocolHandler());
 		}
+		// 执行协议处理器
 		invokeProtocolHandlerCustomizers(connector.getProtocolHandler());
 		if (getUriEncoding() != null) {
 			connector.setURIEncoding(getUriEncoding().name());
 		}
 		// Don't bind to the socket prematurely if ApplicationContext is slow to start
 		connector.setProperty("bindOnInit", "false");
+		// 配置 SSL
 		if (getSsl() != null && getSsl().isEnabled()) {
 			customizeSsl(connector);
 		}
+		// TomcatConnectorCustomizer相关处理
 		TomcatConnectorCustomizer compression = new CompressionConnectorCustomizer(getCompression());
 		compression.customize(connector);
 		for (TomcatConnectorCustomizer customizer : this.tomcatConnectorCustomizers) {
@@ -376,19 +420,24 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 	 * @param initializers initializers to apply
 	 */
 	protected void configureContext(Context context, ServletContextInitializer[] initializers) {
+		// 创建tomcat启动器
 		TomcatStarter starter = new TomcatStarter(initializers);
+		// 判断上下文类型是否是TomcatEmbeddedContext
 		if (context instanceof TomcatEmbeddedContext) {
 			TomcatEmbeddedContext embeddedContext = (TomcatEmbeddedContext) context;
 			embeddedContext.setStarter(starter);
 			embeddedContext.setFailCtxIfServletStartFails(true);
 		}
 		context.addServletContainerInitializer(starter, NO_CLASSES);
+		// 添加上下文生命周期监听器
 		for (LifecycleListener lifecycleListener : this.contextLifecycleListeners) {
 			context.addLifecycleListener(lifecycleListener);
 		}
+		// 添加上下文数据值
 		for (Valve valve : this.contextValves) {
 			context.getPipeline().addValve(valve);
 		}
+		// 添加异常页数据
 		for (ErrorPage errorPage : getErrorPages()) {
 			org.apache.tomcat.util.descriptor.web.ErrorPage tomcatErrorPage = new org.apache.tomcat.util.descriptor.web.ErrorPage();
 			tomcatErrorPage.setLocation(errorPage.getPath());
@@ -396,14 +445,18 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 			tomcatErrorPage.setExceptionType(errorPage.getExceptionName());
 			context.addErrorPage(tomcatErrorPage);
 		}
+		// 添加mime映射数据
 		for (MimeMappings.Mapping mapping : getMimeMappings()) {
 			context.addMimeMapping(mapping.getExtension(), mapping.getMimeType());
 		}
+		// 配置session
 		configureSession(context);
 		new DisableReferenceClearingContextCustomizer().customize(context);
+		// 添加web监听器
 		for (String webListenerClassName : getWebListenerClassNames()) {
 			context.addApplicationListener(webListenerClassName);
 		}
+		// 进行上下文自定义处理
 		for (TomcatContextCustomizer customizer : this.tomcatContextCustomizers) {
 			customizer.customize(context);
 		}

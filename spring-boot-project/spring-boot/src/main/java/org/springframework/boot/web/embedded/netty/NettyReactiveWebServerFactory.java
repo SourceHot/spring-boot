@@ -45,17 +45,29 @@ import org.springframework.util.Assert;
  * @since 2.0.0
  */
 public class NettyReactiveWebServerFactory extends AbstractReactiveWebServerFactory {
-
+	/**
+	 * NettyServerCustomizer集合
+	 */
 	private Set<NettyServerCustomizer> serverCustomizers = new LinkedHashSet<>();
-
+	/**
+	 * 路由提供器集合
+	 */
 	private List<NettyRouteProvider> routeProviders = new ArrayList<>();
-
+	/**
+	 * 生命周期超时时间
+	 */
 	private Duration lifecycleTimeout;
-
+	/**
+	 * 是否处理forward请求头
+	 */
 	private boolean useForwardHeaders;
-
+	/**
+	 * 资源工厂
+	 */
 	private ReactorResourceFactory resourceFactory;
-
+	/**
+	 * 关闭策略
+	 */
 	private Shutdown shutdown;
 
 	public NettyReactiveWebServerFactory() {
@@ -67,11 +79,16 @@ public class NettyReactiveWebServerFactory extends AbstractReactiveWebServerFact
 
 	@Override
 	public WebServer getWebServer(HttpHandler httpHandler) {
+		// 创建HttpServer
 		HttpServer httpServer = createHttpServer();
+		// 创建HttpHandler适配器
 		ReactorHttpHandlerAdapter handlerAdapter = new ReactorHttpHandlerAdapter(httpHandler);
+		// 创建NettyWebServer
 		NettyWebServer webServer = createNettyWebServer(httpServer, handlerAdapter, this.lifecycleTimeout,
 				getShutdown());
+		// 为NettyWebServer设置路由提供器
 		webServer.setRouteProviders(this.routeProviders);
+		// 返回
 		return webServer;
 	}
 
@@ -156,23 +173,28 @@ public class NettyReactiveWebServerFactory extends AbstractReactiveWebServerFact
 	}
 
 	private HttpServer createHttpServer() {
+		// 创建HttpServer对象
 		HttpServer server = HttpServer.create();
+		// 判断资源工厂是否为空，不为空的情况下获取资源，再进行地址绑定。反之则直接进行地址绑定
 		if (this.resourceFactory != null) {
 			LoopResources resources = this.resourceFactory.getLoopResources();
 			Assert.notNull(resources, "No LoopResources: is ReactorResourceFactory not initialized yet?");
 			server = server.runOn(resources).bindAddress(this::getListenAddress);
-		}
-		else {
+		} else {
 			server = server.bindAddress(this::getListenAddress);
 		}
+		// ssl 配置
 		if (getSsl() != null && getSsl().isEnabled()) {
 			server = customizeSslConfiguration(server);
 		}
+		// session 配置
 		if (getCompression() != null && getCompression().getEnabled()) {
 			CompressionCustomizer compressionCustomizer = new CompressionCustomizer(getCompression());
 			server = compressionCustomizer.apply(server);
 		}
+		// 处理协议和forward信息
 		server = server.protocol(listProtocols()).forwarded(this.useForwardHeaders);
+		// 处理成员变量serverCustomizers
 		return applyCustomizers(server);
 	}
 
