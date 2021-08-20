@@ -58,17 +58,29 @@ import org.springframework.util.StringUtils;
 public class JettyWebServer implements WebServer {
 
 	private static final Log logger = LogFactory.getLog(JettyWebServer.class);
-
+	/**
+	 * 锁
+	 */
 	private final Object monitor = new Object();
-
+	/**
+	 * jetty server
+	 */
 	private final Server server;
-
+	/**
+	 * 是否自动
+	 */
 	private final boolean autoStart;
-
+	/**
+	 * jetty的优雅关闭程序
+	 */
 	private final GracefulShutdown gracefulShutdown;
-
+	/**
+	 * 连接器集合
+	 */
 	private Connector[] connectors;
-
+	/**
+	 * 是否开启
+	 */
 	private volatile boolean started;
 
 	/**
@@ -115,30 +127,38 @@ public class JettyWebServer implements WebServer {
 	}
 
 	private void initialize() {
+		// 上锁
 		synchronized (this.monitor) {
 			try {
 				// Cache the connectors and then remove them to prevent requests being
 				// handled before the application context is ready.
+				// 获取jetty连接集合放入到成员变量中
 				this.connectors = this.server.getConnectors();
+				// 为jetty-server添加一个bean. 这个bean是生命周期,实现了start相关方法
 				this.server.addBean(new AbstractLifeCycle() {
 
 					@Override
 					protected void doStart() throws Exception {
+						// 获取连接，如果连接是非暂停状态则抛出异常
 						for (Connector connector : JettyWebServer.this.connectors) {
 							Assert.state(connector.isStopped(),
 									() -> "Connector " + connector + " has been started prematurely");
 						}
+						// 设置jetty服务的连接为null
 						JettyWebServer.this.server.setConnectors(null);
 					}
 
 				});
 				// Start the server so that the ServletContext is available
+				// 服务启动
 				this.server.start();
+				// 设置是否暂停标记为false
 				this.server.setStopAtShutdown(false);
-			}
-			catch (Throwable ex) {
+			} catch (Throwable ex) {
 				// Ensure process isn't left running
+				// 关闭服务
 				stopSilently();
+				// 抛出异常
 				throw new WebServerException("Unable to start embedded Jetty web server", ex);
 			}
 		}
@@ -156,24 +176,29 @@ public class JettyWebServer implements WebServer {
 	@Override
 	public void start() throws WebServerException {
 		synchronized (this.monitor) {
+			// 如果已经启动则不做处理
 			if (this.started) {
 				return;
 			}
+			// 设置连接器
 			this.server.setConnectors(this.connectors);
+			// 如果不是自动启动则不做处理
 			if (!this.autoStart) {
 				return;
 			}
 			try {
+				// 启动jetty服务
 				this.server.start();
+				// 对handler进行延迟初始化
 				for (Handler handler : this.server.getHandlers()) {
 					handleDeferredInitialize(handler);
 				}
+				// 获取连接器集合，将所有连接器启动
 				Connector[] connectors = this.server.getConnectors();
 				for (Connector connector : connectors) {
 					try {
 						connector.start();
-					}
-					catch (IOException ex) {
+					} catch (IOException ex) {
 						if (connector instanceof NetworkConnector) {
 							PortInUseException.throwIfPortBindingException(ex,
 									() -> ((NetworkConnector) connector).getPort());
@@ -181,15 +206,16 @@ public class JettyWebServer implements WebServer {
 						throw ex;
 					}
 				}
+				// 启动标记设置为true
 				this.started = true;
 				logger.info("Jetty started on port(s) " + getActualPortsDescription() + " with context path '"
 						+ getContextPath() + "'");
-			}
-			catch (WebServerException ex) {
+			} catch (WebServerException ex) {
+				// jetty-server关闭
 				stopSilently();
 				throw ex;
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
+				// jetty-server关闭
 				stopSilently();
 				throw new WebServerException("Unable to start embedded Jetty server", ex);
 			}

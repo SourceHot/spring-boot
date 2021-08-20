@@ -50,10 +50,13 @@ final class GracefulShutdown {
 
 	void shutDownGracefully(GracefulShutdownCallback callback) {
 		logger.info("Commencing graceful shutdown. Waiting for active requests to complete");
+		// 关闭存在的连接器
 		for (Connector connector : this.server.getConnectors()) {
 			shutdown(connector);
 		}
+		// 关闭标记设置为true
 		this.shuttingDown = true;
+		// 使用线程进行关闭操作，关闭操作中会对callback再次进行不同优雅关闭策略的设置
 		new Thread(() -> awaitShutdown(callback), "jetty-shutdown").start();
 
 	}

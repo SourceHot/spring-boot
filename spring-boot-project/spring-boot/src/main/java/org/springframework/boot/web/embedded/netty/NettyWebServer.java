@@ -59,27 +59,41 @@ public class NettyWebServer implements WebServer {
 
 	/**
 	 * Permission denied error code from {@code errno.h}.
+	 * 权限不足代码
 	 */
 	private static final int ERROR_NO_EACCES = -13;
-
+	/**
+	 * 恒真对象
+	 */
 	private static final Predicate<HttpServerRequest> ALWAYS = (request) -> true;
-
 	private static final Log logger = LogFactory.getLog(NettyWebServer.class);
-
+	/**
+	 * http服务
+	 */
 	private final HttpServer httpServer;
-
+	/**
+	 * 处理器
+	 */
 	private final BiFunction<? super HttpServerRequest, ? super HttpServerResponse, ? extends Publisher<Void>> handler;
-
+	/**
+	 * 生命周期超时时间
+	 */
 	private final Duration lifecycleTimeout;
-
+	/**
+	 * 优雅关闭
+	 */
 	private final GracefulShutdown gracefulShutdown;
-
+	/**
+	 * 路由提供者集合
+	 */
 	private List<NettyRouteProvider> routeProviders = Collections.emptyList();
-
+	/**
+	 * 服务信息对象
+	 */
 	private volatile DisposableServer disposableServer;
 
 	public NettyWebServer(HttpServer httpServer, ReactorHttpHandlerAdapter handlerAdapter, Duration lifecycleTimeout,
-			Shutdown shutdown) {
+						  Shutdown shutdown) {
 		Assert.notNull(httpServer, "HttpServer must not be null");
 		Assert.notNull(handlerAdapter, "HandlerAdapter must not be null");
 		this.lifecycleTimeout = lifecycleTimeout;
@@ -95,11 +109,12 @@ public class NettyWebServer implements WebServer {
 
 	@Override
 	public void start() throws WebServerException {
+		// 服务信息对象为空的情况下处理
 		if (this.disposableServer == null) {
 			try {
+				// 开始http服务
 				this.disposableServer = startHttpServer();
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				PortInUseException.ifCausedBy(ex, ChannelBindException.class, (bindException) -> {
 					if (bindException.localPort() > 0 && !isPermissionDenied(bindException.getCause())) {
 						throw new PortInUseException(bindException.localPort(), ex);
@@ -107,9 +122,11 @@ public class NettyWebServer implements WebServer {
 				});
 				throw new WebServerException("Unable to start Netty", ex);
 			}
+			// 服务信息对象不为空输出日志
 			if (this.disposableServer != null) {
 				logger.info("Netty started" + getStartedOnMessage(this.disposableServer));
 			}
+			// 启动非守护线程，放置程序关闭
 			startDaemonAwaitThread(this.disposableServer);
 		}
 	}
@@ -126,8 +143,7 @@ public class NettyWebServer implements WebServer {
 			Object value = supplier.get();
 			message.append((message.length() != 0) ? " " : "");
 			message.append(String.format(format, value));
-		}
-		catch (UnsupportedOperationException ex) {
+		} catch (UnsupportedOperationException ex) {
 		}
 	}
 
@@ -135,8 +151,7 @@ public class NettyWebServer implements WebServer {
 		HttpServer server = this.httpServer;
 		if (this.routeProviders.isEmpty()) {
 			server = server.handle(this.handler);
-		}
-		else {
+		} else {
 			server = server.route(this::applyRouteProviders);
 		}
 		if (this.lifecycleTimeout != null) {
@@ -150,8 +165,7 @@ public class NettyWebServer implements WebServer {
 			if (bindExceptionCause instanceof NativeIoException) {
 				return ((NativeIoException) bindExceptionCause).expectedErr() == ERROR_NO_EACCES;
 			}
-		}
-		catch (Throwable ex) {
+		} catch (Throwable ex) {
 		}
 		return false;
 	}
@@ -188,32 +202,35 @@ public class NettyWebServer implements WebServer {
 
 	@Override
 	public void stop() throws WebServerException {
+		// 服务信息对象不为空的情况下处理
 		if (this.disposableServer != null) {
+			// 优雅关闭程序存在的情况下将进行终止操作
 			if (this.gracefulShutdown != null) {
 				this.gracefulShutdown.abort();
 			}
 			try {
+				// 阻塞模式关闭
 				if (this.lifecycleTimeout != null) {
 					this.disposableServer.disposeNow(this.lifecycleTimeout);
-				}
-				else {
+				} else {
 					this.disposableServer.disposeNow();
 				}
-			}
-			catch (IllegalStateException ex) {
+			} catch (IllegalStateException ex) {
 				// Continue
 			}
+			// 服务信息设置为null
 			this.disposableServer = null;
 		}
 	}
 
 	@Override
 	public int getPort() {
+		// 服务信息对象不为空的情况下获取
 		if (this.disposableServer != null) {
 			try {
+				// 从服务信息对象中获取端口
 				return this.disposableServer.port();
-			}
-			catch (UnsupportedOperationException ex) {
+			} catch (UnsupportedOperationException ex) {
 				return -1;
 			}
 		}

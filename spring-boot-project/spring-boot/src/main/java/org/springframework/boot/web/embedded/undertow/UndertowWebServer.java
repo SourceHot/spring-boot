@@ -58,23 +58,41 @@ import org.springframework.util.StringUtils;
 public class UndertowWebServer implements WebServer {
 
 	private static final Log logger = LogFactory.getLog(UndertowWebServer.class);
-
+	/**
+	 * 优雅关闭的回调
+	 */
 	private final AtomicReference<GracefulShutdownCallback> gracefulShutdownCallback = new AtomicReference<>();
-
+	/**
+	 * 锁
+	 */
 	private final Object monitor = new Object();
-
+	/**
+	 * Undertow构建器
+	 */
 	private final Undertow.Builder builder;
-
+	/**
+	 * Http处理器工厂
+	 */
 	private final Iterable<HttpHandlerFactory> httpHandlerFactories;
-
+	/**
+	 * 是否自动启动
+	 */
 	private final boolean autoStart;
-
+	/**
+	 *Undertow
+	 */
 	private Undertow undertow;
-
+	/**
+	 *启动状态
+	 */
 	private volatile boolean started = false;
-
+	/**
+	 * 优雅关闭程序
+	 */
 	private volatile GracefulShutdownHandler gracefulShutdown;
-
+	/**
+	 * 关闭接口集合
+	 */
 	private volatile List<Closeable> closeables;
 
 	/**
@@ -117,18 +135,24 @@ public class UndertowWebServer implements WebServer {
 	@Override
 	public void start() throws WebServerException {
 		synchronized (this.monitor) {
+			// 判断是否启动，如果已经启动则不做处理
 			if (this.started) {
 				return;
 			}
 			try {
+				// 判断是否需要自动，如果不需要则不做处理
 				if (!this.autoStart) {
 					return;
 				}
+				// undertow对象为空的情况下进行创建
 				if (this.undertow == null) {
 					this.undertow = createUndertowServer();
 				}
+				// 启动undertow
 				this.undertow.start();
+				// 设置启动标记为true
 				this.started = true;
+				// 日志
 				String message = getStartLogMessage();
 				logger.info(message);
 			}
@@ -144,6 +168,7 @@ public class UndertowWebServer implements WebServer {
 					throw new WebServerException("Unable to start embedded Undertow", ex);
 				}
 				finally {
+					// 停止undertow
 					stopSilently();
 				}
 			}
@@ -272,15 +297,20 @@ public class UndertowWebServer implements WebServer {
 	@Override
 	public void stop() throws WebServerException {
 		synchronized (this.monitor) {
+			// 如果启动标记是false则不做处理
 			if (!this.started) {
 				return;
 			}
+			// 将启动标记设置为false
 			this.started = false;
+			// 优雅关闭的处理
 			if (this.gracefulShutdown != null) {
 				notifyGracefulCallback(false);
 			}
 			try {
+				// undertow关闭
 				this.undertow.stop();
+				// 关闭接口集合进行关闭操作
 				for (Closeable closeable : this.closeables) {
 					closeable.close();
 				}
