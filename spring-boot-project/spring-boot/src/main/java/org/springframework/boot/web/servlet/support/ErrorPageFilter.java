@@ -87,12 +87,21 @@ public class ErrorPageFilter implements Filter, ErrorPageRegistry, Ordered {
 		CLIENT_ABORT_EXCEPTIONS = Collections.unmodifiableSet(clientAbortExceptions);
 	}
 
+	/**
+	 * 全局异常页路径
+	 */
 	private String global;
-
+	/**
+	 * 状态码表
+	 */
 	private final Map<Integer, String> statuses = new HashMap<>();
-
+	/**
+	 * 异常表
+	 */
 	private final Map<Class<?>, String> exceptions = new HashMap<>();
-
+	/**
+	 * 委托过滤器
+	 */
 	private final OncePerRequestFilter delegate = new OncePerRequestFilter() {
 
 		@Override
@@ -121,17 +130,24 @@ public class ErrorPageFilter implements Filter, ErrorPageRegistry, Ordered {
 
 	private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
+		// 进行异常response的包装
 		ErrorWrapperResponse wrapped = new ErrorWrapperResponse(response);
 		try {
+			// 过滤链进行处理
 			chain.doFilter(request, wrapped);
+			// 判断异常response是否存在异常需要发送
 			if (wrapped.hasErrorToSend()) {
+				// 处理异常状态码
 				handleErrorStatus(request, response, wrapped.getStatus(), wrapped.getMessage());
+				// 写出响应
 				response.flushBuffer();
 			}
+			// 请求是非异步并且响应并未处理则会写出响应
 			else if (!request.isAsyncStarted() && !response.isCommitted()) {
 				response.flushBuffer();
 			}
 		}
+		// 出现异常的处理
 		catch (Throwable ex) {
 			Throwable exceptionToHandle = ex;
 			if (ex instanceof NestedServletException) {
@@ -140,24 +156,32 @@ public class ErrorPageFilter implements Filter, ErrorPageRegistry, Ordered {
 					exceptionToHandle = rootCause;
 				}
 			}
+			// 异常处理
 			handleException(request, response, wrapped, exceptionToHandle);
+			// 写出响应
 			response.flushBuffer();
 		}
 	}
 
 	private void handleErrorStatus(HttpServletRequest request, HttpServletResponse response, int status, String message)
 			throws ServletException, IOException {
+		// 判断是否已经提交，提交的情况下进行提交处理
 		if (response.isCommitted()) {
 			handleCommittedResponse(request, null);
 			return;
 		}
+		// 获取异常页地址
 		String errorPath = getErrorPath(this.statuses, status);
+		// 异常页地址为空的情况下直接发送异常
 		if (errorPath == null) {
 			response.sendError(status, message);
 			return;
 		}
+		// 设置状态码
 		response.setStatus(status);
+		// 设置属性
 		setErrorAttributes(request, status, message);
+		// 重定向
 		request.getRequestDispatcher(errorPath).forward(request, response);
 	}
 
@@ -279,14 +303,17 @@ public class ErrorPageFilter implements Filter, ErrorPageRegistry, Ordered {
 
 	@Override
 	public void addErrorPages(ErrorPage... errorPages) {
+		// 循环异常页
 		for (ErrorPage errorPage : errorPages) {
+			// 异常页是否是全局的，如果是将进行全局数据的设置
 			if (errorPage.isGlobal()) {
 				this.global = errorPage.getPath();
 			}
+			// 判断异常页状态是否为空，不为空的情况下将放入到statuses对象中
 			else if (errorPage.getStatus() != null) {
 				this.statuses.put(errorPage.getStatus().value(), errorPage.getPath());
-			}
-			else {
+			} else {
+				// 异常信息存储
 				this.exceptions.put(errorPage.getException(), errorPage.getPath());
 			}
 		}

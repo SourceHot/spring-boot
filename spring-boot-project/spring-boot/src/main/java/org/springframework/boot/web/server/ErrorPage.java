@@ -27,11 +27,17 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0.0
  */
 public class ErrorPage {
-
+	/**
+	 * http状态码
+	 */
 	private final HttpStatus status;
-
+	/**
+	 * 异常对象
+	 */
 	private final Class<? extends Throwable> exception;
-
+	/**
+	 * 地址
+	 */
 	private final String path;
 
 	public ErrorPage(String path) {
