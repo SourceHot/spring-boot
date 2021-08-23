@@ -119,21 +119,25 @@ public final class ErrorAttributeOptions {
 
 		/**
 		 * Include the exception class name attribute.
+		 * 包括异常类名称属性。
 		 */
 		EXCEPTION,
 
 		/**
 		 * Include the stack trace attribute.
+		 * 包括堆栈跟踪属性。
 		 */
 		STACK_TRACE,
 
 		/**
 		 * Include the message attribute.
+		 * 包括消息属性。
 		 */
 		MESSAGE,
 
 		/**
 		 * Include the binding errors attribute.
+		 * 包括绑定错误属性
 		 */
 		BINDING_ERRORS
 

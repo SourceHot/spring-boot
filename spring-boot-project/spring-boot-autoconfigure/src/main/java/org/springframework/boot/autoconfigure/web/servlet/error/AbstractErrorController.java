@@ -46,9 +46,13 @@ import org.springframework.web.servlet.ModelAndView;
  * @see ErrorAttributes
  */
 public abstract class AbstractErrorController implements ErrorController {
-
+	/**
+	 * 异常属性接口
+	 */
 	private final ErrorAttributes errorAttributes;
-
+	/**
+	 * 异常视图解析器集合
+	 */
 	private final List<ErrorViewResolver> errorViewResolvers;
 
 	public AbstractErrorController(ErrorAttributes errorAttributes) {
@@ -109,6 +113,9 @@ public abstract class AbstractErrorController implements ErrorController {
 		return !"false".equalsIgnoreCase(parameter);
 	}
 
+	/**
+	 * 获取请求状态码
+	 */
 	protected HttpStatus getStatus(HttpServletRequest request) {
 		Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
 		if (statusCode == null) {
@@ -125,6 +132,8 @@ public abstract class AbstractErrorController implements ErrorController {
 	/**
 	 * Resolve any specific error views. By default this method delegates to
 	 * {@link ErrorViewResolver ErrorViewResolvers}.
+	 *
+	 * 解析请求，返回异常视图
 	 * @param request the request
 	 * @param response the response
 	 * @param status the HTTP status

@@ -167,6 +167,10 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		}
 	}
 
+	/**
+	 *
+	 * 初始化特定上下文子类中的其他特殊 bean
+	 */
 	@Override
 	protected void onRefresh() {
 		super.onRefresh();

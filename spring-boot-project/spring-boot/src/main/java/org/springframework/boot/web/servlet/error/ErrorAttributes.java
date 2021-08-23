@@ -39,6 +39,8 @@ public interface ErrorAttributes {
 	 * Returns a {@link Map} of the error attributes. The map can be used as the model of
 	 * an error page {@link ModelAndView}, or returned as a
 	 * {@link ResponseBody @ResponseBody}.
+	 *
+	 * 返回错误属性表
 	 * @param webRequest the source request
 	 * @param includeStackTrace if stack trace element should be included
 	 * @return a map of error attributes
@@ -54,6 +56,7 @@ public interface ErrorAttributes {
 	 * Returns a {@link Map} of the error attributes. The map can be used as the model of
 	 * an error page {@link ModelAndView}, or returned as a
 	 * {@link ResponseBody @ResponseBody}.
+	 * 返回错误属性表
 	 * @param webRequest the source request
 	 * @param options options for error attribute contents
 	 * @return a map of error attributes
@@ -66,6 +69,7 @@ public interface ErrorAttributes {
 	/**
 	 * Return the underlying cause of the error or {@code null} if the error cannot be
 	 * extracted.
+	 * 获取异常对象
 	 * @param webRequest the source request
 	 * @return the {@link Exception} that caused the error or {@code null}
 	 */

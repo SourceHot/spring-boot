@@ -68,8 +68,14 @@ import org.springframework.web.servlet.ModelAndView;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class DefaultErrorAttributes implements ErrorAttributes, HandlerExceptionResolver, Ordered {
 
+	/**
+	 * 异常属性名称
+	 */
 	private static final String ERROR_ATTRIBUTE = DefaultErrorAttributes.class.getName() + ".ERROR";
 
+	/**
+	 * 是否包括异常
+	 */
 	private final Boolean includeException;
 
 	/**
@@ -132,8 +138,11 @@ public class DefaultErrorAttributes implements ErrorAttributes, HandlerException
 	public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
 		Map<String, Object> errorAttributes = new LinkedHashMap<>();
 		errorAttributes.put("timestamp", new Date());
+		// 添加状态
 		addStatus(errorAttributes, webRequest);
+		// 添加异常描述
 		addErrorDetails(errorAttributes, webRequest, includeStackTrace);
+		// 添加地址
 		addPath(errorAttributes, webRequest);
 		return errorAttributes;
 	}
