@@ -46,15 +46,20 @@ class DataSourceInitializationConfiguration {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
+			// 判断bean注册容器中是否存在dataSourceInitializerPostProcessorbean，如果不存在则作相关处理
 			if (!registry.containsBeanDefinition(BEAN_NAME)) {
+				// 创建DataSourceInitializerPostProcessor对象所对应的BeanDefinition
 				AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder
 						.genericBeanDefinition(DataSourceInitializerPostProcessor.class,
 								DataSourceInitializerPostProcessor::new)
 						.getBeanDefinition();
+				// 设置role
 				beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 				// We don't need this one to be post processed otherwise it can cause a
 				// cascade of bean instantiation that we would rather avoid.
+				// 设置是否合成标记
 				beanDefinition.setSynthetic(true);
+				// 注册bean
 				registry.registerBeanDefinition(BEAN_NAME, beanDefinition);
 			}
 		}

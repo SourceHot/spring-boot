@@ -90,14 +90,17 @@ class DataSourceInitializer {
 	 * @see DataSourceProperties#getSchema()
 	 */
 	boolean createSchema() {
+		// 获取脚本资源对象
 		List<Resource> scripts = getScripts("spring.datasource.schema", this.properties.getSchema(), "schema");
 		if (!scripts.isEmpty()) {
 			if (!isEnabled()) {
 				logger.debug("Initialization disabled (not running DDL scripts)");
 				return false;
 			}
+			// 获取账号密码
 			String username = this.properties.getSchemaUsername();
 			String password = this.properties.getSchemaPassword();
+			// 执行脚本
 			runScripts(scripts, username, password);
 		}
 		return !scripts.isEmpty();

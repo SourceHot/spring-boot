@@ -50,59 +50,76 @@ import org.springframework.util.StringUtils;
 @ConfigurationProperties(prefix = "spring.datasource")
 public class DataSourceProperties implements BeanClassLoaderAware, InitializingBean {
 
+	/**
+	 * 类加载器
+	 */
 	private ClassLoader classLoader;
 
 	/**
 	 * Name of the datasource. Default to "testdb" when using an embedded database.
+	 * 数据库名称，采用嵌入式数据库默认名称为testdb
 	 */
 	private String name;
 
 	/**
 	 * Whether to generate a random datasource name.
+	 *
+	 * 是否生成随机数据源名称。
 	 */
 	private boolean generateUniqueName = true;
 
 	/**
 	 * Fully qualified name of the connection pool implementation to use. By default, it
 	 * is auto-detected from the classpath.
+	 *
+	 * 数据源类型
 	 */
 	private Class<? extends DataSource> type;
 
 	/**
 	 * Fully qualified name of the JDBC driver. Auto-detected based on the URL by default.
+	 * 数据库驱动全类名
 	 */
 	private String driverClassName;
 
 	/**
 	 * JDBC URL of the database.
+	 * jdbcurl
 	 */
 	private String url;
 
 	/**
 	 * Login username of the database.
+	 * 登录名
 	 */
 	private String username;
 
 	/**
 	 * Login password of the database.
+	 * 登录密码
 	 */
 	private String password;
 
 	/**
 	 * JNDI location of the datasource. Class, url, username and password are ignored when
 	 * set.
+	 *
+	 * 数据源的 JNDI 位置。 设置时会忽略类、网址、用户名和密码。
 	 */
 	private String jndiName;
 
 	/**
 	 * Mode to apply when determining if DataSource initialization should be performed
 	 * using the available DDL and DML scripts.
+	 *
+	 * 数据源初始化模式
 	 */
 	private DataSourceInitializationMode initializationMode = DataSourceInitializationMode.EMBEDDED;
 
 	/**
 	 * Platform to use in the DDL or DML scripts (such as schema-${platform}.sql or
 	 * data-${platform}.sql).
+	 * 平台名称
 	 */
 	private String platform = "all";
 
@@ -138,16 +155,19 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 
 	/**
 	 * Whether to stop if an error occurs while initializing the database.
+	 * 初始化数据库时发生错误是否停止。
 	 */
 	private boolean continueOnError = false;
 
 	/**
 	 * Statement separator in SQL initialization scripts.
+	 * SQL 初始化脚本中的语句分隔符。
 	 */
 	private String separator = ";";
 
 	/**
 	 * SQL scripts encoding.
+	 * SQL 脚本编码。
 	 */
 	private Charset sqlScriptEncoding;
 

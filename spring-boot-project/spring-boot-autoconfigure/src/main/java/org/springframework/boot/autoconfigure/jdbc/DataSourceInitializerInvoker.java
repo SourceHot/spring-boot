@@ -38,19 +38,29 @@ import org.springframework.core.log.LogMessage;
 class DataSourceInitializerInvoker implements ApplicationListener<DataSourceSchemaCreatedEvent>, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(DataSourceInitializerInvoker.class);
-
+	/**
+	 * 数据源
+	 */
 	private final ObjectProvider<DataSource> dataSource;
-
+	/**
+	 * 数据源属性表
+	 */
 	private final DataSourceProperties properties;
-
+	/**
+	 * 应用上下文
+	 */
 	private final ApplicationContext applicationContext;
-
+	/**
+	 * 数据源实例化程序
+	 */
 	private DataSourceInitializer dataSourceInitializer;
-
+	/**
+	 * 是否实例化
+	 */
 	private boolean initialized;
 
 	DataSourceInitializerInvoker(ObjectProvider<DataSource> dataSource, DataSourceProperties properties,
-			ApplicationContext applicationContext) {
+								 ApplicationContext applicationContext) {
 		this.dataSource = dataSource;
 		this.properties = properties;
 		this.applicationContext = applicationContext;
@@ -58,10 +68,14 @@ class DataSourceInitializerInvoker implements ApplicationListener<DataSourceSche
 
 	@Override
 	public void afterPropertiesSet() {
+		// 获取数据源实例化程序
 		DataSourceInitializer initializer = getDataSourceInitializer();
+		// 数据源实例化程序不为空的情况下进行初始化
 		if (initializer != null) {
+			// 创建schema
 			boolean schemaCreated = this.dataSourceInitializer.createSchema();
 			if (schemaCreated) {
+				// 实例化数据源
 				initialize(initializer);
 			}
 		}
@@ -69,14 +83,15 @@ class DataSourceInitializerInvoker implements ApplicationListener<DataSourceSche
 
 	private void initialize(DataSourceInitializer initializer) {
 		try {
+			// 推送DataSourceSchemaCreatedEvent事件
 			this.applicationContext.publishEvent(new DataSourceSchemaCreatedEvent(initializer.getDataSource()));
 			// The listener might not be registered yet, so don't rely on it.
+			// 处理data相关的sql初始化
 			if (!this.initialized) {
 				this.dataSourceInitializer.initSchema();
 				this.initialized = true;
 			}
-		}
-		catch (IllegalStateException ex) {
+		} catch (IllegalStateException ex) {
 			logger.warn(LogMessage.format("Could not send event to complete DataSource initialization (%s)",
 					ex.getMessage()));
 		}

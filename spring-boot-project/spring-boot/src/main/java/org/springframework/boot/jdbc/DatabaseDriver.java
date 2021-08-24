@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Enumeration of common database drivers.
- *
+ * 数据库驱动枚举
  * @author Phillip Webb
  * @author Maciej Walkowiak
  * @author Marten Deinum
