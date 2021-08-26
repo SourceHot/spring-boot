@@ -21,6 +21,7 @@ import org.springframework.boot.actuate.endpoint.Operation;
 /**
  * An operation on a web endpoint.
  *
+ * web endpoint 操作接口
  * @author Andy Wilkinson
  * @author Phillip Webb
  * @since 2.0.0
@@ -29,18 +30,21 @@ public interface WebOperation extends Operation {
 
 	/**
 	 * Returns the ID of the operation that uniquely identifies it within its endpoint.
+	 * 获取端点的ID
 	 * @return the ID
 	 */
 	String getId();
 
 	/**
 	 * Returns if the underlying operation is blocking.
+	 * 判断是否是阻塞的处理
 	 * @return {@code true} if the operation is blocking
 	 */
 	boolean isBlocking();
 
 	/**
 	 * Returns the predicate for requests that can be handled by this operation.
+	 * 获取WebOperationRequestPredicate对象
 	 * @return the predicate
 	 */
 	WebOperationRequestPredicate getRequestPredicate();

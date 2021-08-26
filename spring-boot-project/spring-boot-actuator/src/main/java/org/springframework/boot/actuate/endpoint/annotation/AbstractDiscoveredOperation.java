@@ -31,9 +31,13 @@ import org.springframework.core.style.ToStringCreator;
  * @since 2.0.0
  */
 public abstract class AbstractDiscoveredOperation implements Operation {
-
+	/**
+	 * 操作方法
+	 */
 	private final OperationMethod operationMethod;
-
+	/**
+	 * 执行操作的接口
+	 */
 	private final OperationInvoker invoker;
 
 	/**

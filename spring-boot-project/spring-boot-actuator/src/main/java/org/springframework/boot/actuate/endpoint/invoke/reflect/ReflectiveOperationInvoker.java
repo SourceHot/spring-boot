@@ -41,11 +41,17 @@ import org.springframework.util.ReflectionUtils;
  * @since 2.0.0
  */
 public class ReflectiveOperationInvoker implements OperationInvoker {
-
+	/**
+	 * 操作目标对象
+	 */
 	private final Object target;
-
+	/**
+	 * 操作方法
+	 */
 	private final OperationMethod operationMethod;
-
+	/**
+	 * 参数列表
+	 */
 	private final ParameterValueMapper parameterValueMapper;
 
 	/**
@@ -70,10 +76,14 @@ public class ReflectiveOperationInvoker implements OperationInvoker {
 
 	@Override
 	public Object invoke(InvocationContext context) {
+		// 参数验证
 		validateRequiredParameters(context);
+		// 提取执行方法
 		Method method = this.operationMethod.getMethod();
+		// 解析参数
 		Object[] resolvedArguments = resolveArguments(context);
 		ReflectionUtils.makeAccessible(method);
+		// 执行方法
 		return ReflectionUtils.invokeMethod(method, this.target, resolvedArguments);
 	}
 

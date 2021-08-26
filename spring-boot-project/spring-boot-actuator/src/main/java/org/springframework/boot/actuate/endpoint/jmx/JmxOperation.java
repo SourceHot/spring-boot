@@ -32,18 +32,21 @@ public interface JmxOperation extends Operation {
 
 	/**
 	 * Returns the name of the operation.
+	 * 获取操作名称
 	 * @return the operation name
 	 */
 	String getName();
 
 	/**
 	 * Returns the type of the output of the operation.
+	 * 输出类型
 	 * @return the output type
 	 */
 	Class<?> getOutputType();
 
 	/**
 	 * Returns the description of the operation.
+	 * 获取描述信息
 	 * @return the operation description
 	 */
 	String getDescription();
@@ -51,6 +54,7 @@ public interface JmxOperation extends Operation {
 	/**
 	 * Returns the parameters the operation expects in the order that they should be
 	 * provided.
+	 * 获取操作参数
 	 * @return the operation parameter names
 	 */
 	List<JmxOperationParameter> getParameters();

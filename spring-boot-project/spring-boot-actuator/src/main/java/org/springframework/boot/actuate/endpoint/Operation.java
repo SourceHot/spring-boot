@@ -27,6 +27,8 @@ public interface Operation {
 
 	/**
 	 * Returns the {@link OperationType type} of the operation.
+	 *
+	 * 端点操作类型
 	 * @return the type
 	 */
 	OperationType getType();

@@ -76,53 +76,58 @@ import org.springframework.web.util.UrlPathHelper;
 public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappingInfoHandlerMapping
 		implements InitializingBean, MatchableHandlerMapping {
 
+	private static final RequestMappingInfo.BuilderConfiguration builderConfig = getBuilderConfig();
 	private final EndpointMapping endpointMapping;
-
 	private final Collection<ExposableWebEndpoint> endpoints;
-
 	private final EndpointMediaTypes endpointMediaTypes;
-
 	private final CorsConfiguration corsConfiguration;
-
 	private final boolean shouldRegisterLinksMapping;
-
 	private final Method handleMethod = ReflectionUtils.findMethod(OperationHandler.class, "handle",
 			HttpServletRequest.class, Map.class);
-
-	private static final RequestMappingInfo.BuilderConfiguration builderConfig = getBuilderConfig();
 
 	/**
 	 * Creates a new {@code WebEndpointHandlerMapping} that provides mappings for the
 	 * operations of the given {@code webEndpoints}.
-	 * @param endpointMapping the base mapping for all endpoints
-	 * @param endpoints the web endpoints
-	 * @param endpointMediaTypes media types consumed and produced by the endpoints
+	 *
+	 * @param endpointMapping            the base mapping for all endpoints
+	 * @param endpoints                  the web endpoints
+	 * @param endpointMediaTypes         media types consumed and produced by the endpoints
 	 * @param shouldRegisterLinksMapping whether the links endpoint should be registered
 	 */
 	public AbstractWebMvcEndpointHandlerMapping(EndpointMapping endpointMapping,
-			Collection<ExposableWebEndpoint> endpoints, EndpointMediaTypes endpointMediaTypes,
-			boolean shouldRegisterLinksMapping) {
+												Collection<ExposableWebEndpoint> endpoints, EndpointMediaTypes endpointMediaTypes,
+												boolean shouldRegisterLinksMapping) {
 		this(endpointMapping, endpoints, endpointMediaTypes, null, shouldRegisterLinksMapping);
 	}
 
 	/**
 	 * Creates a new {@code AbstractWebMvcEndpointHandlerMapping} that provides mappings
 	 * for the operations of the given endpoints.
-	 * @param endpointMapping the base mapping for all endpoints
-	 * @param endpoints the web endpoints
-	 * @param endpointMediaTypes media types consumed and produced by the endpoints
-	 * @param corsConfiguration the CORS configuration for the endpoints or {@code null}
+	 *
+	 * @param endpointMapping            the base mapping for all endpoints
+	 * @param endpoints                  the web endpoints
+	 * @param endpointMediaTypes         media types consumed and produced by the endpoints
+	 * @param corsConfiguration          the CORS configuration for the endpoints or {@code null}
 	 * @param shouldRegisterLinksMapping whether the links endpoint should be registered
 	 */
 	public AbstractWebMvcEndpointHandlerMapping(EndpointMapping endpointMapping,
-			Collection<ExposableWebEndpoint> endpoints, EndpointMediaTypes endpointMediaTypes,
-			CorsConfiguration corsConfiguration, boolean shouldRegisterLinksMapping) {
+												Collection<ExposableWebEndpoint> endpoints, EndpointMediaTypes endpointMediaTypes,
+												CorsConfiguration corsConfiguration, boolean shouldRegisterLinksMapping) {
 		this.endpointMapping = endpointMapping;
 		this.endpoints = endpoints;
 		this.endpointMediaTypes = endpointMediaTypes;
 		this.corsConfiguration = corsConfiguration;
 		this.shouldRegisterLinksMapping = shouldRegisterLinksMapping;
 		setOrder(-100);
+	}
+
+	@SuppressWarnings("deprecation")
+	private static RequestMappingInfo.BuilderConfiguration getBuilderConfig() {
+		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+		config.setPathMatcher(null);
+		config.setSuffixPatternMatch(false);
+		config.setTrailingSlashMatch(true);
+		return config;
 	}
 
 	@Override
@@ -155,15 +160,6 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 		return new RequestMatchResult(patterns.iterator().next(), lookupPath, getPathMatcher());
 	}
 
-	@SuppressWarnings("deprecation")
-	private static RequestMappingInfo.BuilderConfiguration getBuilderConfig() {
-		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
-		config.setPathMatcher(null);
-		config.setSuffixPatternMatch(false);
-		config.setTrailingSlashMatch(true);
-		return config;
-	}
-
 	private void registerMappingForOperation(ExposableWebEndpoint endpoint, WebOperation operation) {
 		WebOperationRequestPredicate predicate = operation.getRequestPredicate();
 		String path = predicate.getPath();
@@ -180,13 +176,14 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 	/**
 	 * Hook point that allows subclasses to wrap the {@link ServletWebOperation} before
 	 * it's called. Allows additional features, such as security, to be added.
-	 * @param endpoint the source endpoint
-	 * @param operation the source operation
+	 *
+	 * @param endpoint            the source endpoint
+	 * @param operation           the source operation
 	 * @param servletWebOperation the servlet web operation to wrap
 	 * @return a wrapped servlet web operation
 	 */
 	protected ServletWebOperation wrapServletWebOperation(ExposableWebEndpoint endpoint, WebOperation operation,
-			ServletWebOperation servletWebOperation) {
+														  ServletWebOperation servletWebOperation) {
 		return servletWebOperation;
 	}
 
@@ -233,12 +230,14 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 
 	/**
 	 * Return the Handler providing actuator links at the root endpoint.
+	 *
 	 * @return the links handler
 	 */
 	protected abstract LinksHandler getLinksHandler();
 
 	/**
 	 * Return the web endpoints being mapped.
+	 *
 	 * @return the endpoints
 	 */
 	public Collection<ExposableWebEndpoint> getEndpoints() {
@@ -271,8 +270,14 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 	 */
 	private static class ServletWebOperationAdapter implements ServletWebOperation {
 
+		/**
+		 * 路径分割符
+		 */
 		private static final String PATH_SEPARATOR = AntPathMatcher.DEFAULT_PATH_SEPARATOR;
 
+		/**
+		 * web endpoint 操作接口
+		 */
 		private final WebOperation operation;
 
 		ServletWebOperationAdapter(WebOperation operation) {
@@ -281,15 +286,20 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 
 		@Override
 		public Object handle(HttpServletRequest request, @RequestBody(required = false) Map<String, String> body) {
+			// 获取请求头
 			HttpHeaders headers = new ServletServerHttpRequest(request).getHeaders();
+			// 获取请求参数
 			Map<String, Object> arguments = getArguments(request, body);
 			try {
+				// 获取api版本
 				ApiVersion apiVersion = ApiVersion.fromHttpHeaders(headers);
+				// 创建安全上下文
 				ServletSecurityContext securityContext = new ServletSecurityContext(request);
+				// 创建调用上下文
 				InvocationContext invocationContext = new InvocationContext(apiVersion, securityContext, arguments);
+				// 处理结果
 				return handleResult(this.operation.invoke(invocationContext), HttpMethod.resolve(request.getMethod()));
-			}
-			catch (InvalidEndpointRequestException ex) {
+			} catch (InvalidEndpointRequestException ex) {
 				throw new InvalidEndpointBadRequestException(ex);
 			}
 		}
@@ -421,11 +431,20 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 			this.request = request;
 		}
 
+		/**
+		 * 返回当前经过身份验证的Principal
+		 * @return
+		 */
 		@Override
 		public Principal getPrincipal() {
 			return this.request.getUserPrincipal();
 		}
 
+		/**
+		 * 确认是否拥有role
+		 * @param role name of the role
+		 * @return
+		 */
 		@Override
 		public boolean isUserInRole(String role) {
 			return this.request.isUserInRole(role);

@@ -21,6 +21,7 @@ import org.springframework.boot.actuate.endpoint.InvocationContext;
 /**
  * Interface to perform an operation invocation.
  *
+ * 操作执行器
  * @author Andy Wilkinson
  * @author Phillip Webb
  * @since 2.0.0

@@ -49,15 +49,25 @@ import org.springframework.util.StringUtils;
  * @author Phillip Webb
  */
 class DiscoveredJmxOperation extends AbstractDiscoveredOperation implements JmxOperation {
-
+	/**
+	 * jmx属性源
+	 */
 	private static final JmxAttributeSource jmxAttributeSource = new AnnotationJmxAttributeSource();
-
+	/**
+	 * DiscoveredOperationMethod名称
+	 */
 	private final String name;
-
+	/**
+	 * 输出类型
+	 */
 	private final Class<?> outputType;
-
+	/**
+	 * 描述信息
+	 */
 	private final String description;
-
+	/**
+	 * 操作参数
+	 */
 	private final List<JmxOperationParameter> parameters;
 
 	DiscoveredJmxOperation(EndpointId endpointId, DiscoveredOperationMethod operationMethod, OperationInvoker invoker) {

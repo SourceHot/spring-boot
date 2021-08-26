@@ -123,11 +123,17 @@ class CloudFoundryWebEndpointServletHandlerMapping extends AbstractWebMvcEndpoin
 	 * {@link ServletWebOperation} wrapper to add security.
 	 */
 	private static class SecureServletWebOperation implements ServletWebOperation {
-
+		/**
+		 * ServletWebOperation
+		 */
 		private final ServletWebOperation delegate;
-
+		/**
+		 * Cloud Foundry 安全拦截器
+		 */
 		private final CloudFoundrySecurityInterceptor securityInterceptor;
-
+		/**
+		 * 端点id
+		 */
 		private final EndpointId endpointId;
 
 		SecureServletWebOperation(ServletWebOperation delegate, CloudFoundrySecurityInterceptor securityInterceptor,
@@ -139,10 +145,13 @@ class CloudFoundryWebEndpointServletHandlerMapping extends AbstractWebMvcEndpoin
 
 		@Override
 		public Object handle(HttpServletRequest request, Map<String, String> body) {
+			// 通过安全拦截器获取处理结果
 			SecurityResponse securityResponse = this.securityInterceptor.preHandle(request, this.endpointId);
+			// 处理结果不是OK的情况下返回消息
 			if (!securityResponse.getStatus().equals(HttpStatus.OK)) {
 				return new ResponseEntity<Object>(securityResponse.getMessage(), securityResponse.getStatus());
 			}
+			// 进行端点相关处理
 			return this.delegate.handle(request, body);
 		}
 

@@ -30,11 +30,17 @@ import org.springframework.util.Assert;
  * @since 2.0.0
  */
 public class InvocationContext {
-
+	/**
+	 * 安全上下文
+	 */
 	private final SecurityContext securityContext;
-
+	/**
+	 * 参数对象
+	 */
 	private final Map<String, Object> arguments;
-
+	/**
+	 * api版本
+	 */
 	private final ApiVersion apiVersion;
 
 	/**

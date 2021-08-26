@@ -44,11 +44,17 @@ class DiscoveredWebOperation extends AbstractDiscoveredOperation implements WebO
 
 	private static final boolean REACTIVE_STREAMS_PRESENT = ClassUtils.isPresent("org.reactivestreams.Publisher",
 			DiscoveredWebOperation.class.getClassLoader());
-
+	/**
+	 * 端点的ID
+	 */
 	private final String id;
-
+	/**
+	 * 是否是阻塞的处理
+	 */
 	private final boolean blocking;
-
+	/**
+	 * WebOperationRequestPredicate对象
+	 */
 	private final WebOperationRequestPredicate requestPredicate;
 
 	DiscoveredWebOperation(EndpointId endpointId, DiscoveredOperationMethod operationMethod, OperationInvoker invoker,

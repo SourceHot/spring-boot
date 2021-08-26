@@ -43,12 +43,21 @@ import org.springframework.util.ObjectUtils;
  */
 public class CachingOperationInvoker implements OperationInvoker {
 
+	/**
+	 * 响应式是否存在
+	 */
 	private static final boolean IS_REACTOR_PRESENT = ClassUtils.isPresent("reactor.core.publisher.Mono", null);
-
+	/**
+	 * 操作执行器
+	 */
 	private final OperationInvoker invoker;
-
+	/**
+	 * 存活时间
+	 */
 	private final long timeToLive;
-
+	/**
+	 * 缓存数据
+	 */
 	private final Map<CacheKey, CachedResponse> cachedResponses;
 
 	/**

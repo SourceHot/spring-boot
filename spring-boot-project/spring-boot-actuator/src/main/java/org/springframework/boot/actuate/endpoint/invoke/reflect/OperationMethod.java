@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
 /**
  * Information describing an operation method on an endpoint method.
  *
+ * 操作方法
  * @author Phillip Webb
  * @since 2.0.0
  * @see ReflectiveOperationInvoker
