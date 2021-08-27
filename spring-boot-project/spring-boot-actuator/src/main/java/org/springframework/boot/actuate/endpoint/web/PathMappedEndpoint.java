@@ -22,6 +22,7 @@ import org.springframework.boot.actuate.endpoint.ExposableEndpoint;
  * Interface that can be implemented by an {@link ExposableEndpoint} that is mapped to a
  * root web path.
  *
+ * 端点路由映射接口
  * @author Phillip Webb
  * @since 2.0.0
  * @see PathMapper

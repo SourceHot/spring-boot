@@ -19,6 +19,7 @@ package org.springframework.boot.actuate.endpoint;
 /**
  * Strategy class that can be used to filter {@link ExposableEndpoint endpoints}.
  *
+ * 端点过滤器
  * @author Phillip Webb
  * @param <E> the endpoint type
  * @since 2.0.0

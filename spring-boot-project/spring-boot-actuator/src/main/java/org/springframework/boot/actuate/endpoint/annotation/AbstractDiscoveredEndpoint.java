@@ -35,9 +35,13 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractDiscoveredEndpoint<O extends Operation> extends AbstractExposableEndpoint<O>
 		implements DiscoveredEndpoint<O> {
-
+	/**
+	 * 端点发现器
+	 */
 	private final EndpointDiscoverer<?, ?> discoverer;
-
+	/**
+	 * 端点bean实例对象
+	 */
 	private final Object endpointBean;
 
 	/**

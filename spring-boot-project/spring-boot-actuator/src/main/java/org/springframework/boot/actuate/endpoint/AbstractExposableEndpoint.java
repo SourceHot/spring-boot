@@ -31,11 +31,17 @@ import org.springframework.util.Assert;
  * @since 2.0.0
  */
 public abstract class AbstractExposableEndpoint<O extends Operation> implements ExposableEndpoint<O> {
-
+	/**
+	 *  端点ID
+	 */
 	private final EndpointId id;
-
+	/**
+	 * 是否默认启用
+	 */
 	private boolean enabledByDefault;
-
+	/**
+	 * 端点操作集合
+	 */
 	private List<O> operations;
 
 	/**

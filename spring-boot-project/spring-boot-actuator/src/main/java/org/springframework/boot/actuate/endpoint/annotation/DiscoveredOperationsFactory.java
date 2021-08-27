@@ -48,6 +48,9 @@ import org.springframework.core.annotation.MergedAnnotations;
  */
 abstract class DiscoveredOperationsFactory<O extends Operation> {
 
+	/**
+	 * 操作类型和操作注解的映射关系
+	 */
 	private static final Map<OperationType, Class<? extends Annotation>> OPERATION_TYPES;
 
 	static {

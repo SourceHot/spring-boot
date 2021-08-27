@@ -30,18 +30,21 @@ public interface ExposableEndpoint<O extends Operation> {
 
 	/**
 	 * Return the endpoint ID.
+	 * 获取端点ID
 	 * @return the endpoint ID
 	 */
 	EndpointId getEndpointId();
 
 	/**
 	 * Returns if the endpoint is enabled by default.
+	 * 判断是否默认启用端点。
 	 * @return if the endpoint is enabled by default
 	 */
 	boolean isEnableByDefault();
 
 	/**
 	 * Returns the operations of the endpoint.
+	 * 获取端点的操作集合
 	 * @return the operations
 	 */
 	Collection<O> getOperations();

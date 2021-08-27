@@ -36,10 +36,19 @@ import org.springframework.util.StringUtils;
  */
 public final class EndpointServlet {
 
+	/**
+	 * servlet对象
+	 */
 	private final Servlet servlet;
 
+	/**
+	 * 初始化参数
+	 */
 	private final Map<String, String> initParameters;
 
+	/**
+	 * 启动加载顺序标记，作用是表示优先级。
+	 */
 	private final int loadOnStartup;
 
 	public EndpointServlet(Class<? extends Servlet> servlet) {

@@ -32,6 +32,7 @@ public interface EndpointsSupplier<E extends ExposableEndpoint<?>> {
 
 	/**
 	 * Return the provided endpoints.
+	 * 获取ExposableEndpoint接口的实现类集合
 	 * @return the endpoints
 	 */
 	Collection<E> getEndpoints();

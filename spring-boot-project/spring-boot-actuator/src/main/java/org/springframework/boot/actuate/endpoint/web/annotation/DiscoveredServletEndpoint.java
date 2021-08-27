@@ -34,20 +34,29 @@ import org.springframework.util.Assert;
  */
 class DiscoveredServletEndpoint extends AbstractDiscoveredEndpoint<Operation> implements ExposableServletEndpoint {
 
+	/**
+	 * 根路径
+	 */
 	private final String rootPath;
 
+	/**
+	 * 端点servlet对象
+	 */
 	private final EndpointServlet endpointServlet;
 
 	DiscoveredServletEndpoint(EndpointDiscoverer<?, ?> discoverer, Object endpointBean, EndpointId id, String rootPath,
 			boolean enabledByDefault) {
 		super(discoverer, endpointBean, id, enabledByDefault, Collections.emptyList());
+		// 获取端点bean的类型
 		String beanType = endpointBean.getClass().getName();
 		Assert.state(endpointBean instanceof Supplier,
 				() -> "ServletEndpoint bean " + beanType + " must be a supplier");
+		// 获取端点实例
 		Object supplied = ((Supplier<?>) endpointBean).get();
 		Assert.state(supplied != null, () -> "ServletEndpoint bean " + beanType + " must not supply null");
 		Assert.state(supplied instanceof EndpointServlet,
 				() -> "ServletEndpoint bean " + beanType + " must supply an EndpointServlet");
+		// 设置成员变量
 		this.endpointServlet = (EndpointServlet) supplied;
 		this.rootPath = rootPath;
 	}

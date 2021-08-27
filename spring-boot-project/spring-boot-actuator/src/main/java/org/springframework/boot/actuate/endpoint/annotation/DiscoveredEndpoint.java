@@ -30,6 +30,7 @@ public interface DiscoveredEndpoint<O extends Operation> extends ExposableEndpoi
 
 	/**
 	 * Return {@code true} if the endpoint was discovered by the specified discoverer.
+	 * 判断传入的端点发现器类型是否是指定端点发现器的同类。
 	 * @param discoverer the discoverer type
 	 * @return {@code true} if discovered using the specified discoverer
 	 */
@@ -37,6 +38,7 @@ public interface DiscoveredEndpoint<O extends Operation> extends ExposableEndpoi
 
 	/**
 	 * Return the source bean that was used to construct the {@link DiscoveredEndpoint}.
+	 * 获取端点对象
 	 * @return the source endpoint bean
 	 */
 	Object getEndpointBean();
