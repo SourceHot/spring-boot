@@ -32,6 +32,9 @@ import org.springframework.util.Assert;
  */
 public class ConversionServiceParameterValueMapper implements ParameterValueMapper {
 
+	/**
+	 * 转换服务
+	 */
 	private final ConversionService conversionService;
 
 	/**

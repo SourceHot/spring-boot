@@ -34,13 +34,21 @@ import org.springframework.util.Assert;
  * @see ReflectiveOperationInvoker
  */
 public class OperationMethod {
-
+	/**
+	 * 参数名称发现器
+	 */
 	private static final ParameterNameDiscoverer DEFAULT_PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
-
+	/**
+	 * 方法
+	 */
 	private final Method method;
-
+	/**
+	 * 操作类型
+	 */
 	private final OperationType operationType;
-
+	/**
+	 * 操作参数集合
+	 */
 	private final OperationParameters operationParameters;
 
 	/**

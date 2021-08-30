@@ -44,7 +44,9 @@ public class CachingOperationInvokerAdvisor implements OperationInvokerAdvisor {
 	@Override
 	public OperationInvoker apply(EndpointId endpointId, OperationType operationType, OperationParameters parameters,
 			OperationInvoker invoker) {
+		// 操作类型是READ并且没有强制参数
 		if (operationType == OperationType.READ && !hasMandatoryParameter(parameters)) {
+			// 获取
 			Long timeToLive = this.endpointIdTimeToLive.apply(endpointId);
 			if (timeToLive != null && timeToLive > 0) {
 				return new CachingOperationInvoker(invoker, timeToLive);
@@ -53,8 +55,13 @@ public class CachingOperationInvokerAdvisor implements OperationInvokerAdvisor {
 		return invoker;
 	}
 
+	/**
+	 * 判断是否存在强制参数
+	 */
 	private boolean hasMandatoryParameter(OperationParameters parameters) {
 		for (OperationParameter parameter : parameters) {
+			// 1. 参数必须
+			// 2. 参数类型不是ApiVersion和SecurityContext
 			if (parameter.isMandatory() && !ApiVersion.class.isAssignableFrom(parameter.getType())
 					&& !SecurityContext.class.isAssignableFrom(parameter.getType())) {
 				return true;

@@ -67,15 +67,24 @@ public class WebMvcEndpointManagementContextConfiguration {
 			ServletEndpointsSupplier servletEndpointsSupplier, ControllerEndpointsSupplier controllerEndpointsSupplier,
 			EndpointMediaTypes endpointMediaTypes, CorsEndpointProperties corsProperties,
 			WebEndpointProperties webEndpointProperties, Environment environment) {
+		// 公开端点集合
 		List<ExposableEndpoint<?>> allEndpoints = new ArrayList<>();
+		// 获取公开的web端点
 		Collection<ExposableWebEndpoint> webEndpoints = webEndpointsSupplier.getEndpoints();
+		// 公开端点集合中加入所有公开的web端点
 		allEndpoints.addAll(webEndpoints);
+		// 公开端点集合中加入servlet的端点集合
 		allEndpoints.addAll(servletEndpointsSupplier.getEndpoints());
+		// 公开端点中集合加入controller的端点集合
 		allEndpoints.addAll(controllerEndpointsSupplier.getEndpoints());
+		// 获取基础路径,根路径
 		String basePath = webEndpointProperties.getBasePath();
+		// 创建端点映射器
 		EndpointMapping endpointMapping = new EndpointMapping(basePath);
+		// 是否应该注册链接端点
 		boolean shouldRegisterLinksMapping = StringUtils.hasText(basePath)
 				|| ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT);
+		// 创建WebMvcEndpointHandlerMapping对象
 		return new WebMvcEndpointHandlerMapping(endpointMapping, webEndpoints, endpointMediaTypes,
 				corsProperties.toCorsConfiguration(), new EndpointLinksResolver(allEndpoints, basePath),
 				shouldRegisterLinksMapping);
@@ -86,7 +95,9 @@ public class WebMvcEndpointManagementContextConfiguration {
 	public ControllerEndpointHandlerMapping controllerEndpointHandlerMapping(
 			ControllerEndpointsSupplier controllerEndpointsSupplier, CorsEndpointProperties corsProperties,
 			WebEndpointProperties webEndpointProperties) {
+		// 创建端点映射器
 		EndpointMapping endpointMapping = new EndpointMapping(webEndpointProperties.getBasePath());
+		// 创建ControllerEndpointHandlerMapping
 		return new ControllerEndpointHandlerMapping(endpointMapping, controllerEndpointsSupplier.getEndpoints(),
 				corsProperties.toCorsConfiguration());
 	}

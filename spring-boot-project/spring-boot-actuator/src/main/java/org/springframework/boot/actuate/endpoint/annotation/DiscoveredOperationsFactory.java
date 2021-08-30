@@ -83,16 +83,24 @@ abstract class DiscoveredOperationsFactory<O extends Operation> {
 				.filter(Objects::nonNull).findFirst().orElse(null);
 	}
 
+	/**
+	 * 核心
+	 */
 	private O createOperation(EndpointId endpointId, Object target, Method method, OperationType operationType,
-			Class<? extends Annotation> annotationType) {
+							  Class<? extends Annotation> annotationType) {
+		// 从方法上获取注解，并将其合并
 		MergedAnnotation<?> annotation = MergedAnnotations.from(method).get(annotationType);
 		if (!annotation.isPresent()) {
 			return null;
 		}
+		// 创建DiscoveredOperationMethod对象
 		DiscoveredOperationMethod operationMethod = new DiscoveredOperationMethod(method, operationType,
 				annotation.asAnnotationAttributes());
+		// 创建ReflectiveOperationInvoker对象
 		OperationInvoker invoker = new ReflectiveOperationInvoker(target, operationMethod, this.parameterValueMapper);
+		// 对成员变量invokerAdvisors进行处理，将其和ReflectiveOperationInvoker对象进行组装
 		invoker = applyAdvisors(endpointId, operationMethod, invoker);
+		// 创建最终的Operation对象
 		return createOperation(endpointId, operationMethod, invoker);
 	}
 

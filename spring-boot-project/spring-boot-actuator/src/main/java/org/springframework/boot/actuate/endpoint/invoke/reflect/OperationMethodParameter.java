@@ -34,11 +34,17 @@ import org.springframework.util.ObjectUtils;
  * @author Phillip Webb
  */
 class OperationMethodParameter implements OperationParameter {
-
+	/**
+	 * 否开启jsr305支持是
+	 */
 	private static final boolean jsr305Present = ClassUtils.isPresent("javax.annotation.Nonnull", null);
-
+	/**
+	 * 参数名称
+	 */
 	private final String name;
-
+	/**
+	 * 参数对象(JDK)
+	 */
 	private final Parameter parameter;
 
 	/**

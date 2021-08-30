@@ -26,18 +26,21 @@ public interface OperationParameter {
 
 	/**
 	 * Returns the parameter name.
+	 * 参数名称
 	 * @return the name
 	 */
 	String getName();
 
 	/**
 	 * Returns the parameter type.
+	 * 参数类型
 	 * @return the type
 	 */
 	Class<?> getType();
 
 	/**
 	 * Return if the parameter is mandatory (does not accept null values).
+	 * 是否必要(必填)
 	 * @return if the parameter is mandatory
 	 */
 	boolean isMandatory();

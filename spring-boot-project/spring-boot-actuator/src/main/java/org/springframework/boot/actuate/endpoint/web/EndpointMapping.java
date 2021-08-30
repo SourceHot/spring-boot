@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * A value object for the base mapping for endpoints.
+ * 端点映射器
  *
  * @author Andy Wilkinson
  * @since 2.0.0

@@ -28,16 +28,19 @@ public enum ManagementPortType {
 
 	/**
 	 * The management port has been disabled.
+	 * 管理端口已被禁用。
 	 */
 	DISABLED,
 
 	/**
 	 * The management port is the same as the server port.
+	 * 管理端口与服务器端口相同。
 	 */
 	SAME,
 
 	/**
 	 * The management port and server port are different.
+	 * 管理端口和服务器端口不同。
 	 */
 	DIFFERENT;
 
