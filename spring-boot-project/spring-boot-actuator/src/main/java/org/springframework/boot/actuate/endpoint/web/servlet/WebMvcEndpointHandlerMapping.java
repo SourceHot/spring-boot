@@ -42,6 +42,9 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 public class WebMvcEndpointHandlerMapping extends AbstractWebMvcEndpointHandlerMapping {
 
+	/**
+	 * 端点链接解析器
+	 */
 	private final EndpointLinksResolver linksResolver;
 
 	/**
@@ -69,6 +72,7 @@ public class WebMvcEndpointHandlerMapping extends AbstractWebMvcEndpointHandlerM
 
 	/**
 	 * Handler for root endpoint providing links.
+	 * 链接处理器
 	 */
 	class WebMvcLinksHandler implements LinksHandler {
 

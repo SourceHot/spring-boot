@@ -16,31 +16,13 @@
 
 package org.springframework.boot.actuate.endpoint.web.servlet;
 
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.actuate.endpoint.InvalidEndpointRequestException;
 import org.springframework.boot.actuate.endpoint.InvocationContext;
 import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.boot.actuate.endpoint.http.ApiVersion;
 import org.springframework.boot.actuate.endpoint.invoke.OperationInvoker;
-import org.springframework.boot.actuate.endpoint.web.EndpointMapping;
-import org.springframework.boot.actuate.endpoint.web.EndpointMediaTypes;
-import org.springframework.boot.actuate.endpoint.web.ExposableWebEndpoint;
-import org.springframework.boot.actuate.endpoint.web.WebEndpointResponse;
-import org.springframework.boot.actuate.endpoint.web.WebOperation;
-import org.springframework.boot.actuate.endpoint.web.WebOperationRequestPredicate;
+import org.springframework.boot.actuate.endpoint.web.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -63,6 +45,13 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+import java.util.*;
+
 /**
  * A custom {@link HandlerMapping} that makes {@link ExposableWebEndpoint web endpoints}
  * available over HTTP using Spring MVC.
@@ -76,12 +65,33 @@ import org.springframework.web.util.UrlPathHelper;
 public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappingInfoHandlerMapping
 		implements InitializingBean, MatchableHandlerMapping {
 
+	/**
+	 * 用于创建RequestMappingInfo对象的构造器
+	 */
 	private static final RequestMappingInfo.BuilderConfiguration builderConfig = getBuilderConfig();
+	/**
+	 * 端点映射器
+	 */
 	private final EndpointMapping endpointMapping;
+	/**
+	 * ExposableWebEndpoint集合
+	 */
 	private final Collection<ExposableWebEndpoint> endpoints;
+	/**
+	 * 端点媒体类型
+	 */
 	private final EndpointMediaTypes endpointMediaTypes;
+	/**
+	 * CORS配置
+	 */
 	private final CorsConfiguration corsConfiguration;
+	/**
+	 * 是否应该注册链接端点
+	 */
 	private final boolean shouldRegisterLinksMapping;
+	/**
+	 * 方法对象
+	 */
 	private final Method handleMethod = ReflectionUtils.findMethod(OperationHandler.class, "handle",
 			HttpServletRequest.class, Map.class);
 
@@ -132,12 +142,17 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 
 	@Override
 	protected void initHandlerMethods() {
+		// 处理ExposableWebEndpoint集合
 		for (ExposableWebEndpoint endpoint : this.endpoints) {
+			// 处理单个ExposableWebEndpoint中存在的WebOperation接口
 			for (WebOperation operation : endpoint.getOperations()) {
+				// 注册endpoint和operation
 				registerMappingForOperation(endpoint, operation);
 			}
 		}
+		// 是否应该注册链接端点
 		if (this.shouldRegisterLinksMapping) {
+			// 注册链接映射
 			registerLinksMapping();
 		}
 	}
@@ -161,14 +176,20 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 	}
 
 	private void registerMappingForOperation(ExposableWebEndpoint endpoint, WebOperation operation) {
+		// 获取WebOperationRequestPredicate对象
 		WebOperationRequestPredicate predicate = operation.getRequestPredicate();
+		// 提取path
 		String path = predicate.getPath();
+		// 提取matchAllRemainingPathSegmentsVariable
 		String matchAllRemainingPathSegmentsVariable = predicate.getMatchAllRemainingPathSegmentsVariable();
+		// 替换path中的{*matchAllRemainingPathSegmentsVariable}为**
 		if (matchAllRemainingPathSegmentsVariable != null) {
 			path = path.replace("{*" + matchAllRemainingPathSegmentsVariable + "}", "**");
 		}
+		// 创建ServletWebOperation接口实现类
 		ServletWebOperation servletWebOperation = wrapServletWebOperation(endpoint, operation,
 				new ServletWebOperationAdapter(operation));
+		// 注册
 		registerMapping(createRequestMappingInfo(predicate, path), new OperationHandler(servletWebOperation),
 				this.handleMethod);
 	}
@@ -188,6 +209,7 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 	}
 
 	private RequestMappingInfo createRequestMappingInfo(WebOperationRequestPredicate predicate, String path) {
+		// 创建RequestMappingInfo对象
 		return RequestMappingInfo.paths(this.endpointMapping.createSubPath(path))
 				.methods(RequestMethod.valueOf(predicate.getHttpMethod().name()))
 				.consumes(predicate.getConsumes().toArray(new String[0]))
@@ -433,6 +455,7 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 
 		/**
 		 * 返回当前经过身份验证的Principal
+		 *
 		 * @return
 		 */
 		@Override
@@ -442,6 +465,7 @@ public abstract class AbstractWebMvcEndpointHandlerMapping extends RequestMappin
 
 		/**
 		 * 确认是否拥有role
+		 *
 		 * @param role name of the role
 		 * @return
 		 */

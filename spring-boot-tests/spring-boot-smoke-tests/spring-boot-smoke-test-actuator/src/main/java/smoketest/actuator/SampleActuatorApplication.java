@@ -16,16 +16,31 @@
 
 package smoketest.actuator;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class SampleActuatorApplication {
+public class SampleActuatorApplication implements ApplicationRunner {
+	@Autowired
+	private ApplicationContext context;
+
+	@Override
+	public void run(ApplicationArguments args) throws Exception {
+		AbstractWebMvcEndpointHandlerMapping mapping = context.getBean(AbstractWebMvcEndpointHandlerMapping.class);
+		System.out.println();
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(SampleActuatorApplication.class, args);
@@ -35,5 +50,7 @@ public class SampleActuatorApplication {
 	public HealthIndicator helloHealthIndicator() {
 		return () -> Health.up().withDetail("hello", "world").build();
 	}
+
+
 
 }

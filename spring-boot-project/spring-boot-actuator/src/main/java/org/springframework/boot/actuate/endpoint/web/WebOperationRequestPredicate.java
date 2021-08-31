@@ -35,17 +35,29 @@ public final class WebOperationRequestPredicate {
 	private static final Pattern PATH_VAR_PATTERN = Pattern.compile("(\\{\\*?).+?}");
 
 	private static final Pattern ALL_REMAINING_PATH_SEGMENTS_VAR_PATTERN = Pattern.compile("^.*\\{\\*(.+?)}$");
-
+	/**
+	 * 路径
+	 */
 	private final String path;
-
+	/**
+	 * 剩余路径
+	 */
 	private final String matchAllRemainingPathSegmentsVariable;
-
+	/**
+	 * 规范路径
+	 */
 	private final String canonicalPath;
-
+	/**
+	 * 端点请求方式
+	 */
 	private final WebEndpointHttpMethod httpMethod;
-
+	/**
+	 * 受理类型
+	 */
 	private final Collection<String> consumes;
-
+	/**
+	 * 消费类型
+	 */
 	private final Collection<String> produces;
 
 	/**
