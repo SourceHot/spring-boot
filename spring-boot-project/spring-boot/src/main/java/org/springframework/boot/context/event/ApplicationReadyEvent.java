@@ -25,6 +25,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * itself, but beware of modifying its internal state since all initialization steps will
  * have been completed by then.
  *
+ * 应用程序就绪事件
  * @author Stephane Nicoll
  * @since 1.3.0
  * @see ApplicationFailedEvent

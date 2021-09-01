@@ -46,15 +46,19 @@ public class RestartApplicationListener implements ApplicationListener<Applicati
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
+		// 应用程序启动事件
 		if (event instanceof ApplicationStartingEvent) {
 			onApplicationStartingEvent((ApplicationStartingEvent) event);
 		}
+		// 应用程序准备完成事件
 		if (event instanceof ApplicationPreparedEvent) {
 			onApplicationPreparedEvent((ApplicationPreparedEvent) event);
 		}
+		// 应用程序就绪事件或应用程序失败事件
 		if (event instanceof ApplicationReadyEvent || event instanceof ApplicationFailedEvent) {
 			Restarter.getInstance().finish();
 		}
+		// 应用程序失败事件
 		if (event instanceof ApplicationFailedEvent) {
 			onApplicationFailedEvent((ApplicationFailedEvent) event);
 		}
@@ -63,11 +67,15 @@ public class RestartApplicationListener implements ApplicationListener<Applicati
 	private void onApplicationStartingEvent(ApplicationStartingEvent event) {
 		// It's too early to use the Spring environment but we should still allow
 		// users to disable restart using a System property.
+		// 提取spring.devtools.restart.enabled数据值
 		String enabled = System.getProperty(ENABLED_PROPERTY);
+		// 准备RestartInitializer接口
 		RestartInitializer restartInitializer = null;
+		// spring.devtools.restart.enabled数据值不存在的情况下创建DefaultRestartInitializer
 		if (enabled == null) {
 			restartInitializer = new DefaultRestartInitializer();
 		}
+		// spring.devtools.restart.enabled数据值为true的情况下创建DefaultRestartInitializer对象并重写isDevelopmentClassLoader方法
 		else if (Boolean.parseBoolean(enabled)) {
 			restartInitializer = new DefaultRestartInitializer() {
 
@@ -81,17 +89,23 @@ public class RestartApplicationListener implements ApplicationListener<Applicati
 					"Restart enabled irrespective of application packaging due to System property '%s' being set to true",
 					ENABLED_PROPERTY));
 		}
+		// restartInitializer不为空的情况下执行
 		if (restartInitializer != null) {
+			// 获取事件中的参数
 			String[] args = event.getArgs();
+			// 是否属于重启的初始化
 			boolean restartOnInitialize = !AgentReloader.isActive();
 			if (!restartOnInitialize) {
 				logger.info("Restart disabled due to an agent-based reloader being active");
 			}
+			// Restarter 实例化
 			Restarter.initialize(args, false, restartInitializer, restartOnInitialize);
 		}
+		// restartInitializer为空的情况下执行
 		else {
 			logger.info(LogMessage.format("Restart disabled due to System property '%s' being set to false",
 					ENABLED_PROPERTY));
+			// 初始化和禁用重启支持
 			Restarter.disable();
 		}
 	}

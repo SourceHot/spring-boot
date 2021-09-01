@@ -179,20 +179,29 @@ public class DevToolsDataSourceAutoConfiguration {
 
 		@Override
 		public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+			// 构件消息对象
 			ConditionMessage.Builder message = ConditionMessage.forCondition("DevTools DataSource Condition");
+			// 从容器中提取存在的数据源名称集合
 			String[] dataSourceBeanNames = context.getBeanFactory().getBeanNamesForType(DataSource.class, true, false);
+			// 数据源名称集合数量不等于一返回不匹配
 			if (dataSourceBeanNames.length != 1) {
 				return ConditionOutcome.noMatch(message.didNotFind("a single DataSource bean").atAll());
 			}
+			// 从容器中获取DataSourceProperties对象对应的名称集合，如果数量不等于一返回不匹配
 			if (context.getBeanFactory().getBeanNamesForType(DataSourceProperties.class, true, false).length != 1) {
 				return ConditionOutcome.noMatch(message.didNotFind("a single DataSourceProperties bean").atAll());
 			}
+			// 获取第一个数据源名称对应的bean定义对象
 			BeanDefinition dataSourceDefinition = context.getRegistry().getBeanDefinition(dataSourceBeanNames[0]);
+			// 匹配条件
+			// 如果bean定义对象类型是AnnotatedBeanDefinition
+			// 如果bean定义对象的工厂方法元数据不为空
+			// 如果bean定义对象的工厂方法元数据中的类路径是org.springframework.boot.autoconfigure.jdbc+.DataSourceConfiguration$开头
 			if (dataSourceDefinition instanceof AnnotatedBeanDefinition
 					&& ((AnnotatedBeanDefinition) dataSourceDefinition).getFactoryMethodMetadata() != null
 					&& ((AnnotatedBeanDefinition) dataSourceDefinition).getFactoryMethodMetadata()
-							.getDeclaringClassName().startsWith(DataSourceAutoConfiguration.class.getPackage().getName()
-									+ ".DataSourceConfiguration$")) {
+					.getDeclaringClassName().startsWith(DataSourceAutoConfiguration.class.getPackage().getName()
+							+ ".DataSourceConfiguration$")) {
 				return ConditionOutcome.match(message.foundExactly("auto-configured DataSource"));
 			}
 			return ConditionOutcome.noMatch(message.didNotFind("an auto-configured DataSource").atAll());
