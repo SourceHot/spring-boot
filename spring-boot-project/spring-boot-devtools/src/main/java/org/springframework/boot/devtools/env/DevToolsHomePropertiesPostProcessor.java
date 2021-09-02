@@ -50,13 +50,25 @@ import org.springframework.util.StringUtils;
  */
 public class DevToolsHomePropertiesPostProcessor implements EnvironmentPostProcessor {
 
+	/**
+	 * 历史文件名称
+	 */
 	private static final String LEGACY_FILE_NAME = ".spring-boot-devtools.properties";
 
+	/**
+	 * spring-boot-devtools配置文件名称集合
+	 */
 	private static final String[] FILE_NAMES = new String[] { "spring-boot-devtools.yml", "spring-boot-devtools.yaml",
 			"spring-boot-devtools.properties" };
 
+	/**
+	 * 配置文件路径
+	 */
 	private static final String CONFIG_PATH = "/.config/spring-boot/";
 
+	/**
+	 * 属性源加载器集合
+	 */
 	private static final Set<PropertySourceLoader> PROPERTY_SOURCE_LOADERS;
 
 	static {
@@ -70,11 +82,15 @@ public class DevToolsHomePropertiesPostProcessor implements EnvironmentPostProce
 
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+		// devtools是否禁用，如果不是则进行处理
 		if (DevToolsEnablementDeducer.shouldEnable(Thread.currentThread())) {
+			// 创建暂存容器
 			List<PropertySource<?>> propertySources = getPropertySources();
 			if (propertySources.isEmpty()) {
+				// 提取devtools相关配置放入暂存容器
 				addPropertySource(propertySources, LEGACY_FILE_NAME, (file) -> "devtools-local");
 			}
+			// 向环境配置中加入数据
 			propertySources.forEach(environment.getPropertySources()::addFirst);
 		}
 	}

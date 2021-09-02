@@ -59,6 +59,7 @@ public class ClassPathChangedEvent extends ApplicationEvent {
 
 	/**
 	 * Return if an application restart is required due to the change.
+	 * 确定是否需要重启
 	 * @return if an application restart is required
 	 */
 	public boolean isRestartRequired() {

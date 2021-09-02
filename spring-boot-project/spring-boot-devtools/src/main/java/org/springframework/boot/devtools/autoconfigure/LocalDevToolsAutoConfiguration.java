@@ -104,7 +104,9 @@ public class LocalDevToolsAutoConfiguration {
 		ApplicationListener<ClassPathChangedEvent> restartingClassPathChangedEventListener(
 				FileSystemWatcherFactory fileSystemWatcherFactory) {
 			return (event) -> {
+				// 判断是否需要重启
 				if (event.isRestartRequired()) {
+					// 重启
 					Restarter.getInstance().restart(new FileWatchingFailureHandler(fileSystemWatcherFactory));
 				}
 			};
@@ -113,10 +115,13 @@ public class LocalDevToolsAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		ClassPathFileSystemWatcher classPathFileSystemWatcher(FileSystemWatcherFactory fileSystemWatcherFactory,
-				ClassPathRestartStrategy classPathRestartStrategy) {
+															  ClassPathRestartStrategy classPathRestartStrategy) {
+			// 从Restarter实例中获取url集合
 			URL[] urls = Restarter.getInstance().getInitialUrls();
+			// 创建 ClassPathFileSystemWatcher对象
 			ClassPathFileSystemWatcher watcher = new ClassPathFileSystemWatcher(fileSystemWatcherFactory,
 					classPathRestartStrategy, urls);
+			// 设置stopWatcherOnRestart属性为true
 			watcher.setStopWatcherOnRestart(true);
 			return watcher;
 		}
@@ -124,6 +129,7 @@ public class LocalDevToolsAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		ClassPathRestartStrategy classPathRestartStrategy() {
+			// 创建重启策略
 			return new PatternClassPathRestartStrategy(this.properties.getRestart().getAllExclude());
 		}
 
@@ -140,14 +146,20 @@ public class LocalDevToolsAutoConfiguration {
 		}
 
 		private FileSystemWatcher newFileSystemWatcher() {
+			// 从配置对象中获取Restart对象,该对象是配置对象
 			Restart restartProperties = this.properties.getRestart();
+			// 创建FileSystemWatcher对象
 			FileSystemWatcher watcher = new FileSystemWatcher(true, restartProperties.getPollInterval(),
 					restartProperties.getQuietPeriod(), SnapshotStateRepository.STATIC);
+			// 获取triggerFile数据
 			String triggerFile = restartProperties.getTriggerFile();
 			if (StringUtils.hasLength(triggerFile)) {
+				// 设置triggerFile属性
 				watcher.setTriggerFilter(new TriggerFileFilter(triggerFile));
 			}
+			// 获取additionalPaths数据
 			List<File> additionalPaths = restartProperties.getAdditionalPaths();
+			// 设置directories数据
 			for (File path : additionalPaths) {
 				watcher.addSourceDirectory(path.getAbsoluteFile());
 			}
@@ -164,6 +176,9 @@ public class LocalDevToolsAutoConfiguration {
 			this.liveReloadServer = liveReloadServer;
 		}
 
+		/**
+		 * 确认是否是支持的事件类型
+		 */
 		@Override
 		public boolean supportsEventType(ResolvableType eventType) {
 			Class<?> type = eventType.getRawClass();
@@ -174,11 +189,17 @@ public class LocalDevToolsAutoConfiguration {
 					|| ClassPathChangedEvent.class.isAssignableFrom(type);
 		}
 
+		/**
+		 * 确定是否实际支持给定的源类型
+		 */
 		@Override
 		public boolean supportsSourceType(Class<?> sourceType) {
 			return true;
 		}
 
+		/**
+		 * 事件处理
+		 */
 		@Override
 		public void onApplicationEvent(ApplicationEvent event) {
 			if (event instanceof ContextRefreshedEvent || (event instanceof ClassPathChangedEvent

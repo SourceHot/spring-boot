@@ -50,9 +50,12 @@ public class OptionalLiveReloadServer implements InitializingBean {
 	}
 
 	void startServer() throws Exception {
+		// 服务对象不为空
 		if (this.server != null) {
 			try {
+				// 服务未启动
 				if (!this.server.isStarted()) {
+					// 服务启动
 					this.server.start();
 				}
 				logger.info(LogMessage.format("LiveReload server is running on port %s", this.server.getPort()));

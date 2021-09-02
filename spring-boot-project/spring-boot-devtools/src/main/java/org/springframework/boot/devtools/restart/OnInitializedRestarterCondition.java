@@ -33,14 +33,19 @@ class OnInitializedRestarterCondition extends SpringBootCondition {
 
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		// 构造消息对象
 		ConditionMessage.Builder message = ConditionMessage.forCondition("Initialized Restarter Condition");
+		// 获取Restarter实例
 		Restarter restarter = getRestarter();
+		// 如果Restarter实例为空返回不匹配
 		if (restarter == null) {
 			return ConditionOutcome.noMatch(message.because("unavailable"));
 		}
+		// 如果Restarter实例对象中的初始化url集合为空返回不匹配
 		if (restarter.getInitialUrls() == null) {
 			return ConditionOutcome.noMatch(message.because("initialized without URLs"));
 		}
+		// 匹配
 		return ConditionOutcome.match(message.because("available and initialized"));
 	}
 

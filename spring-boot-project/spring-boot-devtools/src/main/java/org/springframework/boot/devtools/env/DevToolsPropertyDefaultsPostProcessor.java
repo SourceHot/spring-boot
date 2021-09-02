@@ -83,7 +83,9 @@ public class DevToolsPropertyDefaultsPostProcessor implements EnvironmentPostPro
 
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+		// 开启devtools并且是本地程序
 		if (DevToolsEnablementDeducer.shouldEnable(Thread.currentThread()) && isLocalApplication(environment)) {
+			// 判断是否需要添加数据
 			if (canAddProperties(environment)) {
 				logger.info(LogMessage.format("Devtools property defaults active! Set '%s' to 'false' to disable",
 						ENABLED));
@@ -125,7 +127,9 @@ public class DevToolsPropertyDefaultsPostProcessor implements EnvironmentPostPro
 	}
 
 	private boolean canAddProperties(Environment environment) {
+		// 环境对象中spring.devtools.add-properties的值为true
 		if (environment.getProperty(ENABLED, Boolean.class, true)) {
+			// Restarter中初始化url不为空或者环境对象中spring.devtools.remote.secret数据存在
 			return isRestarterInitialized() || isRemoteRestartEnabled(environment);
 		}
 		return false;

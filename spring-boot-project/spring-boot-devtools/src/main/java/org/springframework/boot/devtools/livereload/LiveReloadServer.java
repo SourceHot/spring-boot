@@ -46,25 +46,42 @@ public class LiveReloadServer {
 
 	/**
 	 * The default live reload server port.
+	 * 默认的实时重载服务器端口
 	 */
 	public static final int DEFAULT_PORT = 35729;
 
 	private static final Log logger = LogFactory.getLog(LiveReloadServer.class);
-
+	/**
+	 * 读取超时时间
+	 */
 	private static final int READ_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(4);
-
+	/**
+	 * 线程池
+	 */
 	private final ExecutorService executor = Executors.newCachedThreadPool(new WorkerThreadFactory());
-
+	/**
+	 * 连接集合
+	 */
 	private final List<Connection> connections = new ArrayList<>();
-
+	/**
+	 * 锁
+	 */
 	private final Object monitor = new Object();
-
+	/**
+	 * 端口
+	 */
 	private final int port;
-
+	/**
+	 * 线程工厂
+	 */
 	private final ThreadFactory threadFactory;
-
+	/**
+	 * 服务套接字
+	 */
 	private ServerSocket serverSocket;
-
+	/**
+	 * 监听线程
+	 */
 	private Thread listenThread;
 
 	/**
