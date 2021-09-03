@@ -31,8 +31,14 @@ import java.util.Set;
  */
 public final class ChangedFiles implements Iterable<ChangedFile> {
 
+	/**
+	 * 目录对象
+	 */
 	private final File sourceDirectory;
 
+	/**
+	 * 文件对象集合
+	 */
 	private final Set<ChangedFile> files;
 
 	public ChangedFiles(File sourceDirectory, Set<ChangedFile> files) {

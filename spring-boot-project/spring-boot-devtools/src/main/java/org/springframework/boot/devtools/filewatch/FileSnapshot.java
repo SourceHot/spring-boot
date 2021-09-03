@@ -16,9 +16,9 @@
 
 package org.springframework.boot.devtools.filewatch;
 
-import java.io.File;
-
 import org.springframework.util.Assert;
+
+import java.io.File;
 
 /**
  * A snapshot of a File at a given point in time.
@@ -26,13 +26,21 @@ import org.springframework.util.Assert;
  * @author Phillip Webb
  */
 class FileSnapshot {
-
+	/**
+	 * 文件对象
+	 */
 	private final File file;
-
+	/**
+	 * 是否存在
+	 */
 	private final boolean exists;
-
+	/**
+	 * 文件长度
+	 */
 	private final long length;
-
+	/**
+	 * 最后修改时间
+	 */
 	private final long lastModified;
 
 	FileSnapshot(File file) {

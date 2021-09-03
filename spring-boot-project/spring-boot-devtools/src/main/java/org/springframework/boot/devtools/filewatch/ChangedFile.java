@@ -113,16 +113,19 @@ public final class ChangedFile {
 
 		/**
 		 * A new file has been added.
+		 * 新增
 		 */
 		ADD,
 
 		/**
 		 * An existing file has been modified.
+		 * 修改
 		 */
 		MODIFY,
 
 		/**
 		 * An existing file has been deleted.
+		 * 删除
 		 */
 		DELETE
 
