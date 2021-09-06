@@ -154,9 +154,14 @@ public class ClassLoaderFiles implements ClassLoaderFileRepository, Serializable
 	public static class SourceDirectory implements Serializable {
 
 		private static final long serialVersionUID = 1;
-
+		/**
+		 * 源目录名称
+		 */
 		private final String name;
-
+		/**
+		 * key:名称
+		 * value:类加载器文件
+		 */
 		private final Map<String, ClassLoaderFile> files = new LinkedHashMap<>();
 
 		SourceDirectory(String name) {

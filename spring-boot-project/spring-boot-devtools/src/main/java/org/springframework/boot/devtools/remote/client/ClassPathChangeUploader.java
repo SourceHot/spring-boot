@@ -89,8 +89,11 @@ public class ClassPathChangeUploader implements ApplicationListener<ClassPathCha
 	@Override
 	public void onApplicationEvent(ClassPathChangedEvent event) {
 		try {
+			// 获取类加载文件集合
 			ClassLoaderFiles classLoaderFiles = getClassLoaderFiles(event);
+			// 序列化
 			byte[] bytes = serialize(classLoaderFiles);
+			// 上传
 			performUpload(classLoaderFiles, bytes);
 		}
 		catch (IOException ex) {
@@ -102,15 +105,24 @@ public class ClassPathChangeUploader implements ApplicationListener<ClassPathCha
 		try {
 			while (true) {
 				try {
+					// 创建http请求
 					ClientHttpRequest request = this.requestFactory.createRequest(this.uri, HttpMethod.POST);
+					// 获取请求头
 					HttpHeaders headers = request.getHeaders();
+					// 设置content-type
 					headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+					// 设置content-length
 					headers.setContentLength(bytes.length);
+					// 值拷贝
 					FileCopyUtils.copy(bytes, request.getBody());
+					// http请求执行获取响应结果
 					ClientHttpResponse response = request.execute();
+					// 获取响应状态
 					HttpStatus statusCode = response.getStatusCode();
+					// 若响应状态非ok则抛出异常
 					Assert.state(statusCode == HttpStatus.OK,
 							() -> "Unexpected " + statusCode + " response uploading class files");
+					// 写出日志
 					logUpload(classLoaderFiles);
 					return;
 				}
@@ -123,6 +135,7 @@ public class ClassPathChangeUploader implements ApplicationListener<ClassPathCha
 			}
 		}
 		catch (InterruptedException ex) {
+			// 终止当前线程
 			Thread.currentThread().interrupt();
 			throw new IllegalStateException(ex);
 		}
@@ -142,10 +155,15 @@ public class ClassPathChangeUploader implements ApplicationListener<ClassPathCha
 	}
 
 	private ClassLoaderFiles getClassLoaderFiles(ClassPathChangedEvent event) throws IOException {
+		// 创建ClassLoaderFiles对象
 		ClassLoaderFiles files = new ClassLoaderFiles();
+		// 从事件对象中提取变化的文件集合，遍历变化的文件集合
 		for (ChangedFiles changedFiles : event.getChangeSet()) {
+			// 获取目录对象的绝对路径
 			String sourceDirectory = changedFiles.getSourceDirectory().getAbsolutePath();
+			// 遍历文件集合对象
 			for (ChangedFile changedFile : changedFiles) {
+				// 向ClassLoaderFiles对象加入数据
 				files.addFile(sourceDirectory, changedFile.getRelativeName(), asClassLoaderFile(changedFile));
 			}
 		}

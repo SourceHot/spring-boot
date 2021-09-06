@@ -34,11 +34,17 @@ import org.springframework.util.Assert;
  * @see ClassPathFileSystemWatcher
  */
 class ClassPathFileChangeListener implements FileChangeListener {
-
+	/**
+	 * 事件推送器
+	 */
 	private final ApplicationEventPublisher eventPublisher;
-
+	/**
+	 * 重启策略
+	 */
 	private final ClassPathRestartStrategy restartStrategy;
-
+	/**
+	 * 文件系统监控
+	 */
 	private final FileSystemWatcher fileSystemWatcherToStop;
 
 	/**
@@ -59,7 +65,9 @@ class ClassPathFileChangeListener implements FileChangeListener {
 
 	@Override
 	public void onChange(Set<ChangedFiles> changeSet) {
+		// 判断是否重启
 		boolean restart = isRestartRequired(changeSet);
+		// 推送事件
 		publishEvent(new ClassPathChangedEvent(this, changeSet, restart));
 	}
 
@@ -71,11 +79,14 @@ class ClassPathFileChangeListener implements FileChangeListener {
 	}
 
 	private boolean isRestartRequired(Set<ChangedFiles> changeSet) {
+		// 确定是否有任何代理重新加载器处于活动状态
 		if (AgentReloader.isActive()) {
 			return false;
 		}
+		// 循环处理方法参数changeSet
 		for (ChangedFiles changedFiles : changeSet) {
 			for (ChangedFile changedFile : changedFiles) {
+				// 确认是否需要重启
 				if (this.restartStrategy.isRestartRequired(changedFile)) {
 					return true;
 				}

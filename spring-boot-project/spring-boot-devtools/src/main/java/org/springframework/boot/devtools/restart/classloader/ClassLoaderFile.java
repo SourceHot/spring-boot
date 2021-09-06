@@ -31,11 +31,17 @@ import org.springframework.util.Assert;
 public class ClassLoaderFile implements Serializable {
 
 	private static final long serialVersionUID = 1;
-
+	/**
+	 * 类加载文件的种类
+	 */
 	private final Kind kind;
-
+	/**
+	 * 文件内容
+	 */
 	private final byte[] contents;
-
+	/**
+	 * 最后修改时间
+	 */
 	private final long lastModified;
 
 	/**
@@ -94,16 +100,19 @@ public class ClassLoaderFile implements Serializable {
 
 		/**
 		 * The file has been added since the original JAR was created.
+		 * 自创建原始 JAR 以来，已添加该文件。
 		 */
 		ADDED,
 
 		/**
 		 * The file has been modified since the original JAR was created.
+		 * 自创建原始 JAR 以来，该文件已被修改。
 		 */
 		MODIFIED,
 
 		/**
 		 * The file has been deleted since the original JAR was created.
+		 * 自创建原始 JAR 以来，该文件已被删除。
 		 */
 		DELETED
 
