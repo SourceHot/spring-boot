@@ -36,13 +36,22 @@ import org.springframework.util.Assert;
  * @see ClassPathFileChangeListener
  */
 public class ClassPathFileSystemWatcher implements InitializingBean, DisposableBean, ApplicationContextAware {
-
+	/**
+	 * 文件系统观察对象
+	 */
 	private final FileSystemWatcher fileSystemWatcher;
-
+	/**
+	 * 确定是否需要重启
+	 */
 	private ClassPathRestartStrategy restartStrategy;
-
+	/**
+	 * 应用上下文
+	 */
 	private ApplicationContext applicationContext;
 
+	/**
+	 * 重启时是否停止FileSystemWatcher对象
+	 */
 	private boolean stopWatcherOnRestart;
 
 	/**
@@ -76,19 +85,23 @@ public class ClassPathFileSystemWatcher implements InitializingBean, DisposableB
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		// 成员变量restartStrategy不为空的情况下处理
 		if (this.restartStrategy != null) {
 			FileSystemWatcher watcherToStop = null;
 			if (this.stopWatcherOnRestart) {
 				watcherToStop = this.fileSystemWatcher;
 			}
+			// 添加监听器
 			this.fileSystemWatcher.addListener(
 					new ClassPathFileChangeListener(this.applicationContext, this.restartStrategy, watcherToStop));
 		}
+		// 启动监控
 		this.fileSystemWatcher.start();
 	}
 
 	@Override
 	public void destroy() throws Exception {
+		// 关闭监控
 		this.fileSystemWatcher.stop();
 	}
 

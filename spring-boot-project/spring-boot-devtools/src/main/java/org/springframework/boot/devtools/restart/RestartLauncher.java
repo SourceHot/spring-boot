@@ -25,10 +25,19 @@ import java.lang.reflect.Method;
  */
 class RestartLauncher extends Thread {
 
+	/**
+	 * main函数所在的类名称
+	 */
 	private final String mainClassName;
 
+	/**
+	 * 参数集合
+	 */
 	private final String[] args;
 
+	/**
+	 * 异常对象
+	 */
 	private Throwable error;
 
 	RestartLauncher(ClassLoader classLoader, String mainClassName, String[] args,

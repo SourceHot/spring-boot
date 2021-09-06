@@ -42,10 +42,15 @@ class FileWatchingFailureHandler implements FailureHandler {
 
 	@Override
 	public Outcome handle(Throwable failure) {
+		// 创建CountDownLatch对象
 		CountDownLatch latch = new CountDownLatch(1);
+		// 获取FileSystemWatcher对象
 		FileSystemWatcher watcher = this.fileSystemWatcherFactory.getFileSystemWatcher();
+		// 设置源目录
 		watcher.addSourceDirectories(new ClassPathDirectories(Restarter.getInstance().getInitialUrls()));
+		// 添加监听器
 		watcher.addListener(new Listener(latch));
+		// 启动
 		watcher.start();
 		try {
 			latch.await();
@@ -53,6 +58,7 @@ class FileWatchingFailureHandler implements FailureHandler {
 		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
 		}
+		// 返回重试标记
 		return Outcome.RETRY;
 	}
 

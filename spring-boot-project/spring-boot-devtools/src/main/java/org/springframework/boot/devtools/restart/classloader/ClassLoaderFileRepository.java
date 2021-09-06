@@ -36,6 +36,7 @@ public interface ClassLoaderFileRepository {
 	/**
 	 * Return a {@link ClassLoaderFile} for the given name or {@code null} if no file is
 	 * contained in this collection.
+	 * 根据文件名称获取ClassLoaderFile
 	 * @param name the name of the file
 	 * @return a {@link ClassLoaderFile} or {@code null}
 	 */

@@ -95,6 +95,7 @@ public class ClassLoaderFile implements Serializable {
 
 	/**
 	 * The kinds of class load files.
+	 * 类加载文件的种类
 	 */
 	public enum Kind {
 

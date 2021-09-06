@@ -19,6 +19,7 @@ package org.springframework.boot.devtools.restart;
 /**
  * Strategy used to handle launch failures.
  *
+ * 用于确认启动失败的策略。
  * @author Phillip Webb
  * @since 1.3.0
  */
@@ -45,11 +46,13 @@ public interface FailureHandler {
 
 		/**
 		 * Abort the relaunch.
+		 * 中止重新启动。
 		 */
 		ABORT,
 
 		/**
 		 * Try again to relaunch the application.
+		 * 再次尝试重新启动应用程序。
 		 */
 		RETRY
 

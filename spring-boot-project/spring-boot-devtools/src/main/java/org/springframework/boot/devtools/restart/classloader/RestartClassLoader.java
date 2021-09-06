@@ -89,13 +89,17 @@ public class RestartClassLoader extends URLClassLoader implements SmartClassLoad
 	@Override
 	public Enumeration<URL> getResources(String name) throws IOException {
 		// Use the parent since we're shadowing resource and we don't want duplicates
+		// 调用父类进行资源集合获取
 		Enumeration<URL> resources = getParent().getResources(name);
+		// 通过成员变量updatedFiles根据名称获取ClassLoaderFile对象
 		ClassLoaderFile file = this.updatedFiles.getFile(name);
+		// ClassLoaderFile对象不为空的情况下
 		if (file != null) {
 			// Assume that we're replacing just the first item
 			if (resources.hasMoreElements()) {
 				resources.nextElement();
 			}
+			// 获取类加载文件的种类如果不是删除则进行对象组装
 			if (file.getKind() != Kind.DELETED) {
 				return new CompoundEnumeration<>(createFileUrl(name, file), resources);
 			}
@@ -130,21 +134,28 @@ public class RestartClassLoader extends URLClassLoader implements SmartClassLoad
 
 	@Override
 	public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		// 将方法参数name做路径替换得到路径表示
 		String path = name.replace('.', '/').concat(".class");
+		// 通过成员变量updatedFiles配合path获取ClassLoaderFile对象
 		ClassLoaderFile file = this.updatedFiles.getFile(path);
+		// 如果ClassLoaderFile对象不为空并且ClassLoaderFile对象的kind属性为删除则抛出异常
 		if (file != null && file.getKind() == Kind.DELETED) {
 			throw new ClassNotFoundException(name);
 		}
 		synchronized (getClassLoadingLock(name)) {
+			// 获取name对应的类对象
 			Class<?> loadedClass = findLoadedClass(name);
+			// 如果为空
 			if (loadedClass == null) {
 				try {
+					// 进一步寻找类
 					loadedClass = findClass(name);
-				}
-				catch (ClassNotFoundException ex) {
+				} catch (ClassNotFoundException ex) {
+					// 当前类（RestartClassLoader）找不到类的情况下通过Class获取
 					loadedClass = Class.forName(name, false, getParent());
 				}
 			}
+			// 是否需要解析,如果需要则进行解析
 			if (resolve) {
 				resolveClass(loadedClass);
 			}
@@ -154,14 +165,19 @@ public class RestartClassLoader extends URLClassLoader implements SmartClassLoad
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
+		// 将方法参数name做路径替换得到路径表示
 		String path = name.replace('.', '/').concat(".class");
+		// 通过成员变量updatedFiles获取ClassLoaderFile对象
 		final ClassLoaderFile file = this.updatedFiles.getFile(path);
+		// 若ClassLoaderFile对象为空则调用父类进行搜索类对象
 		if (file == null) {
 			return super.findClass(name);
 		}
+		// 如果ClassLoaderFile对象的kind属性为删除则抛出异常
 		if (file.getKind() == Kind.DELETED) {
 			throw new ClassNotFoundException(name);
 		}
+		// 返回类对象
 		return AccessController.doPrivileged((PrivilegedAction<Class<?>>) () -> {
 			byte[] bytes = file.getContents();
 			return defineClass(name, bytes, 0, bytes.length);
