@@ -99,12 +99,17 @@ public class SpringBootTestContextBootstrapper extends DefaultTestContextBootstr
 
 	@Override
 	public TestContext buildTestContext() {
+		// 构建测试上下文
 		TestContext context = super.buildTestContext();
+		// 检查配置
 		verifyConfiguration(context.getTestClass());
+		// 获取web环境
 		WebEnvironment webEnvironment = getWebEnvironment(context.getTestClass());
+		// 如果web环境对象是mock并且应用类型是servlet，设置ACTIVATE_SERVLET_LISTENER属性为true
 		if (webEnvironment == WebEnvironment.MOCK && deduceWebApplicationType() == WebApplicationType.SERVLET) {
 			context.setAttribute(ACTIVATE_SERVLET_LISTENER, true);
 		}
+		// 如果web环境存在并且embedded值为true，设置ACTIVATE_SERVLET_LISTENER属性为false
 		else if (webEnvironment != null && webEnvironment.isEmbedded()) {
 			context.setAttribute(ACTIVATE_SERVLET_LISTENER, false);
 		}
@@ -149,16 +154,24 @@ public class SpringBootTestContextBootstrapper extends DefaultTestContextBootstr
 
 	@Override
 	protected MergedContextConfiguration processMergedContextConfiguration(MergedContextConfiguration mergedConfig) {
+		// 获取类集合,数据源包含成员变量classes和寻找到的SpringBootConfiguration注解修饰的类
 		Class<?>[] classes = getOrFindConfigurationClasses(mergedConfig);
+		// 获取属性源属性集合
 		List<String> propertySourceProperties = getAndProcessPropertySourceProperties(mergedConfig);
+		// 修改配置
 		mergedConfig = createModifiedConfig(mergedConfig, classes, StringUtils.toStringArray(propertySourceProperties));
+		// 获取WebEnvironment对象
 		WebEnvironment webEnvironment = getWebEnvironment(mergedConfig.getTestClass());
+		// 如果WebEnvironment对象不为空并且支持web环境
 		if (webEnvironment != null && isWebEnvironmentSupported(mergedConfig)) {
+			// 获取web应用类型
 			WebApplicationType webApplicationType = getWebApplicationType(mergedConfig);
+			// 如果是servlet
 			if (webApplicationType == WebApplicationType.SERVLET
 					&& (webEnvironment.isEmbedded() || webEnvironment == WebEnvironment.MOCK)) {
 				mergedConfig = new WebMergedContextConfiguration(mergedConfig, determineResourceBasePath(mergedConfig));
 			}
+			// 如果是reactive
 			else if (webApplicationType == WebApplicationType.REACTIVE
 					&& (webEnvironment.isEmbedded() || webEnvironment == WebEnvironment.MOCK)) {
 				return new ReactiveWebMergedContextConfiguration(mergedConfig);
@@ -324,6 +337,7 @@ public class SpringBootTestContextBootstrapper extends DefaultTestContextBootstr
 
 	protected void verifyConfiguration(Class<?> testClass) {
 		SpringBootTest springBootTest = getAnnotation(testClass);
+		// SpringBootTest不为空并且
 		if (springBootTest != null && isListeningOnPort(springBootTest.webEnvironment()) && MergedAnnotations
 				.from(testClass, SearchStrategy.INHERITED_ANNOTATIONS).isPresent(WebAppConfiguration.class)) {
 			throw new IllegalStateException("@WebAppConfiguration should only be used "

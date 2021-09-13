@@ -81,45 +81,67 @@ public class SpringBootContextLoader extends AbstractContextLoader {
 
 	@Override
 	public ApplicationContext loadContext(MergedContextConfiguration config) throws Exception {
+		// 获取配置类集合
 		Class<?>[] configClasses = config.getClasses();
+		// 获取资源集合
 		String[] configLocations = config.getLocations();
+		// 数据检查
 		Assert.state(!ObjectUtils.isEmpty(configClasses) || !ObjectUtils.isEmpty(configLocations),
 				() -> "No configuration classes or locations found in @SpringApplicationConfiguration. "
 						+ "For default configuration detection to work you need Spring 4.0.3 or better (found "
 						+ SpringVersion.getVersion() + ").");
+		// 获取SpringApplication对象
 		SpringApplication application = getSpringApplication();
+		// 设置主类
 		application.setMainApplicationClass(config.getTestClass());
+		// 设置属性
 		application.addPrimarySources(Arrays.asList(configClasses));
 		application.getSources().addAll(Arrays.asList(configLocations));
+		// 获取环境配置
 		ConfigurableEnvironment environment = getEnvironment();
+		// 如果配置中存在profiles将设置到环境配置中
 		if (!ObjectUtils.isEmpty(config.getActiveProfiles())) {
 			setActiveProfiles(environment, config.getActiveProfiles());
 		}
+		// 获取资源加载器
 		ResourceLoader resourceLoader = (application.getResourceLoader() != null) ? application.getResourceLoader()
 				: new DefaultResourceLoader(null);
+		// 添加资源到环境配置中
 		TestPropertySourceUtils.addPropertiesFilesToEnvironment(environment, resourceLoader,
 				config.getPropertySourceLocations());
 		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(environment, getInlinedProperties(config));
+		// 为应用上下文设置环境配置
 		application.setEnvironment(environment);
+		// 获取ApplicationContextInitializer接口实现类集合
 		List<ApplicationContextInitializer<?>> initializers = getInitializers(config, application);
+		// 如果配置是WebMergedContextConfiguration类型
 		if (config instanceof WebMergedContextConfiguration) {
+			// 设置web应用类型为servlet
 			application.setWebApplicationType(WebApplicationType.SERVLET);
+			// 确认是否开启web环境，如果没有则创建WebConfigurer对象并进行配置
 			if (!isEmbeddedWebEnvironment(config)) {
 				new WebConfigurer().configure(config, application, initializers);
 			}
 		}
+		// 如果配置是ReactiveWebMergedContextConfiguration类型
 		else if (config instanceof ReactiveWebMergedContextConfiguration) {
+			// 设置web应用类型为reactive
 			application.setWebApplicationType(WebApplicationType.REACTIVE);
+			// 确认是否开启web环境，如果没有则设置GenericReactiveWebApplicationContext对象到上下文工厂中
 			if (!isEmbeddedWebEnvironment(config)) {
 				application.setApplicationContextFactory(
 						ApplicationContextFactory.of(GenericReactiveWebApplicationContext::new));
 			}
 		}
+		// 其他情况将设置web应用类型为none
 		else {
 			application.setWebApplicationType(WebApplicationType.NONE);
 		}
+		// 为应用上下文设置ApplicationContextInitializer接口实现类集合
 		application.setInitializers(initializers);
+		// 获取启动参数
 		String[] args = SpringBootTestArgs.get(config.getContextCustomizers());
+		// 执行run方法获取应用上下文
 		return application.run(args);
 	}
 

@@ -63,6 +63,7 @@ public class MockitoTestExecutionListener extends AbstractTestExecutionListener 
 
 	@Override
 	public void beforeTestMethod(TestContext testContext) throws Exception {
+		// 如果上下文中DependencyInjectionTestExecutionListener.REINJECT_DEPENDENCIES_ATTRIBUTE属性值为true则进行初始化
 		if (Boolean.TRUE.equals(
 				testContext.getAttribute(DependencyInjectionTestExecutionListener.REINJECT_DEPENDENCIES_ATTRIBUTE))) {
 			initMocks(testContext);
@@ -72,7 +73,9 @@ public class MockitoTestExecutionListener extends AbstractTestExecutionListener 
 
 	@Override
 	public void afterTestMethod(TestContext testContext) throws Exception {
+		// 从上下文中获取MOCKS_ATTRIBUTE_NAME对应的对象
 		Object mocks = testContext.getAttribute(MOCKS_ATTRIBUTE_NAME);
+		// 如果mocks类型是AutoCloseable，执行关闭操作
 		if (mocks instanceof AutoCloseable) {
 			((AutoCloseable) mocks).close();
 		}

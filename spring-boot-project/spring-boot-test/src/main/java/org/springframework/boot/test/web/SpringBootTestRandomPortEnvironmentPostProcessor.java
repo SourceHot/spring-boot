@@ -43,20 +43,25 @@ class SpringBootTestRandomPortEnvironmentPostProcessor implements EnvironmentPos
 
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+		// 从环境配置中获取TestPropertySourceUtils.INLINED_PROPERTIES_PROPERTY_SOURCE_NAME对应的属性源
 		MapPropertySource source = (MapPropertySource) environment.getPropertySources()
 				.get(TestPropertySourceUtils.INLINED_PROPERTIES_PROPERTY_SOURCE_NAME);
+		// 如果属性源为空或者服务端口不为0或者management.server.port数据不为空则跳过处理
 		if (source == null || isTestServerPortFixed(source, environment) || isTestManagementPortConfigured(source)) {
 			return;
 		}
+		// 获取management.server.port数据
 		Integer managementPort = getPropertyAsInteger(environment, MANAGEMENT_PORT_PROPERTY, null);
+		// 如果management.server.port数据不存在或者数值为-1或者数值为0跳过处理
 		if (managementPort == null || managementPort.equals(-1) || managementPort.equals(0)) {
 			return;
 		}
+		// 获取server.port数据，默认值8080
 		Integer serverPort = getPropertyAsInteger(environment, SERVER_PORT_PROPERTY, 8080);
+		// 如果management.server.port数据和server.port数据不相等则向数据源设置management.server.port数据为0，相等则设置空字符串
 		if (!managementPort.equals(serverPort)) {
 			source.getSource().put(MANAGEMENT_PORT_PROPERTY, "0");
-		}
-		else {
+		} else {
 			source.getSource().put(MANAGEMENT_PORT_PROPERTY, "");
 		}
 	}

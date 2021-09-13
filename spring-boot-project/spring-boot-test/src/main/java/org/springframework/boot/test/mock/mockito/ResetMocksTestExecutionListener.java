@@ -72,30 +72,42 @@ public class ResetMocksTestExecutionListener extends AbstractTestExecutionListen
 	}
 
 	private void resetMocks(ConfigurableApplicationContext applicationContext, MockReset reset) {
+		// 获取bean工厂
 		ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
+		// 获取bean工厂中bean定义的名称集合
 		String[] names = beanFactory.getBeanDefinitionNames();
+		// 获取单例bean定义的名称集合
 		Set<String> instantiatedSingletons = new HashSet<>(Arrays.asList(beanFactory.getSingletonNames()));
+		// 循环处理bean名称集合
 		for (String name : names) {
+			// 获取bean定义
 			BeanDefinition definition = beanFactory.getBeanDefinition(name);
+			// bean定义中表示单例并且在单例bean名称集合中存在
 			if (definition.isSingleton() && instantiatedSingletons.contains(name)) {
+				// 获取bean实例
 				Object bean = beanFactory.getSingleton(name);
+				// 如果相同则重新设置
 				if (reset.equals(MockReset.get(bean))) {
 					Mockito.reset(bean);
 				}
 			}
 		}
 		try {
+			// 从bean工厂中获取MockitoBeans对象
 			MockitoBeans mockedBeans = beanFactory.getBean(MockitoBeans.class);
+			// 循环MockitoBeans对象
 			for (Object mockedBean : mockedBeans) {
+				// 如果相同则进行重新设置
 				if (reset.equals(MockReset.get(mockedBean))) {
 					Mockito.reset(mockedBean);
 				}
 			}
-		}
-		catch (NoSuchBeanDefinitionException ex) {
+		} catch (NoSuchBeanDefinitionException ex) {
 			// Continue
 		}
+		// 父上下文不为空
 		if (applicationContext.getParent() != null) {
+			// 调用外部方法来进行当前方法的调用
 			resetMocks(applicationContext.getParent(), reset);
 		}
 	}
