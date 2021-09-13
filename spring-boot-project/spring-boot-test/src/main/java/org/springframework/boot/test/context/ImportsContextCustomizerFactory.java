@@ -42,10 +42,14 @@ class ImportsContextCustomizerFactory implements ContextCustomizerFactory {
 	@Override
 	public ContextCustomizer createContextCustomizer(Class<?> testClass,
 			List<ContextConfigurationAttributes> configAttributes) {
+		// 提取Import注解描述
 		AnnotationDescriptor<Import> descriptor = TestContextAnnotationUtils.findAnnotationDescriptor(testClass,
 				Import.class);
+		// 描述对象不为空
 		if (descriptor != null) {
+			// 确认是否包含@Bean注解如果包含抛出异常
 			assertHasNoBeanMethods(descriptor.getRootDeclaringClass());
+			// 返回ImportsContextCustomizer对象
 			return new ImportsContextCustomizer(descriptor.getRootDeclaringClass());
 		}
 		return null;

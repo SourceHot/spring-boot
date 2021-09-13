@@ -73,10 +73,14 @@ class ImportsContextCustomizer implements ContextCustomizer {
 
 	@Override
 	public void customizeContext(ConfigurableApplicationContext context,
-			MergedContextConfiguration mergedContextConfiguration) {
+								 MergedContextConfiguration mergedContextConfiguration) {
+		// 获取bean定义注册器
 		BeanDefinitionRegistry registry = getBeanDefinitionRegistry(context);
+		// 创建注解bean定义读取器
 		AnnotatedBeanDefinitionReader reader = new AnnotatedBeanDefinitionReader(registry);
+		// 注册清理用的后置处理器（ImportsCleanupPostProcessor）
 		registerCleanupPostProcessor(registry, reader);
+		// 注册ImportsConfiguration
 		registerImportsConfiguration(registry, reader);
 	}
 
