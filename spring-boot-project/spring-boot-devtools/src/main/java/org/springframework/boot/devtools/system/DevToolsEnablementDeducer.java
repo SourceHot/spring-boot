@@ -23,6 +23,7 @@ import java.util.Set;
 /**
  * Utility to deduce if DevTools should be enabled in the current context.
  *
+ * 用于推断是否应在当前上下文中启用 DevTools 的实用程序
  * @author Madhura Bhave
  * @since 2.2.0
  */

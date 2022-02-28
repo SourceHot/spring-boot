@@ -42,6 +42,8 @@ import org.springframework.util.StringUtils;
  * {@link EnvironmentPostProcessor} to add devtools properties from the user's home
  * directory.
  *
+ *
+ * 开发工具主页属性后处理器
  * @author Phillip Webb
  * @author Andy Wilkinson
  * @author HaiTao Zhang
@@ -85,9 +87,11 @@ public class DevToolsHomePropertiesPostProcessor implements EnvironmentPostProce
 		// devtools是否禁用，如果不是则进行处理
 		if (DevToolsEnablementDeducer.shouldEnable(Thread.currentThread())) {
 			// 创建暂存容器
+			// 获取属性源集合
 			List<PropertySource<?>> propertySources = getPropertySources();
 			if (propertySources.isEmpty()) {
 				// 提取devtools相关配置放入暂存容器
+				// 添加属性源
 				addPropertySource(propertySources, LEGACY_FILE_NAME, (file) -> "devtools-local");
 			}
 			// 向环境配置中加入数据
@@ -108,7 +112,8 @@ public class DevToolsHomePropertiesPostProcessor implements EnvironmentPostProce
 	}
 
 	private void addPropertySource(List<PropertySource<?>> propertySources, String fileName,
-			Function<File, String> propertySourceNamer) {
+								   Function<File, String> propertySourceNamer) {
+		// 获取主路径
 		File home = getHomeDirectory();
 		File file = (home != null) ? new File(home, fileName) : null;
 		FileSystemResource resource = (file != null) ? new FileSystemResource(file) : null;
